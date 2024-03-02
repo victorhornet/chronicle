@@ -1,53 +1,35 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import "./styles/App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+    const [days, setDays] = useState(7);
+    const [startOnMonday, setStartOnMonday] = useState(true);
+    let tasks: string[] = ["test", "best", "jest"];
+    const now = new Date();
+    const day = now.getDay();
+    const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const dayOfWeek = daysOfWeek[day];
+    const boldDay = (dayNum: number) => dayNum;
+    return (
+        <div className="h-screen">
+            <div className="flex flex-row h-full">
+                <div className="flex-initial w-1/6 bg-slate-500">
+                    <h1 className="text-4xl font-extrabold">Tasks</h1>
+                    <ul>
+                        {tasks.map((task) => <li className="m-2 px-2 py-1 bg-slate-100 border-3 border-slate-300 hover:border-pink-500 rounded-md" draggable={true} key={task}>{task}</li>)}
+                    </ul>
+                </div>
+                <div className="flex-auto bg-slate-400">
+                    <h1>Calendar</h1>
+                    <h2>Date: {now.getDate()}/{now.getMonth()}/{now.getFullYear()}</h2>
+                    <div>
+                        {Array.from(Array(days).keys()).map((k) => <p>{daysOfWeek[k]}</p>)}
+                    </div>
+                </div>
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
-  return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
-    </div>
-  );
+            </div>
+        </div>
+    );
 }
 
 export default App;
