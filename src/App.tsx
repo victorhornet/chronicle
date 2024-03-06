@@ -1,15 +1,19 @@
 import { useState } from "react";
 import "./styles/App.css";
 import {
-    PIXELS_PER_SLOT,
-    TOTAL_SLOTS,
+    GridPos,
+    MINUTES_PER_SLOT,
+    PERCENTAGE_PER_SLOT,
+    TOTAL_SLOTS_PER_DAY,
     dateAdd,
     dateSub,
     dateToSlot,
     days,
     hours,
     isToday,
-    toSlots,
+    minutes,
+    removeTime,
+    toDays,
 } from "./utils";
 
 function App() {
@@ -56,8 +60,24 @@ function Calendar() {
     const decWeekStart = () => setWeekStart(dateSub(weekStart, days(1)));
     const todayWeekStart = () => setWeekStart(now);
 
-    const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const extraColumns = 4;
 
+    const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const dayOffsets = Array.from(Array(displayedDays).keys());
+    const dateCols = dayOffsets.map((dayOffset) =>
+        dateAdd(weekStart, days(dayOffset)),
+    );
+    const gridTemplateColumns = `repeat(${displayedDays}, 1fr)`;
+
+    const computeGridPos = (datetime: Date) => {
+        return {
+            col: toDays(
+                removeTime(datetime).getTime() -
+                    removeTime(weekStart).getTime(),
+            ),
+            row: dateToSlot(datetime),
+        };
+    };
     return (
         <div className="flex flex-auto flex-col bg-slate-400">
             {/* <h1>Calendar</h1> */}
@@ -96,90 +116,165 @@ function Calendar() {
                     {">"}
                 </button>
             </div>
-            <div className="flex flex-grow flex-row overflow-scroll">
-                {Array.from(Array(displayedDays).keys()).map((dayOffset) => {
-                    const date = dateAdd(weekStart, days(dayOffset));
-                    return (
-                        <Column
-                            key={date.getTime()}
-                            date={date}
-                            daysOfWeek={daysOfWeek}
-                        />
-                    );
-                })}
+            <div
+                className="grid flex-grow flex-row items-center overflow-scroll bg-slate-200"
+                style={{
+                    gridTemplateColumns,
+                    gridTemplateRows: `[heading-start] min-content [heading-end] 1fr [body-end]`,
+                }}
+            >
+                <CalendarHeader
+                    dayOffsets={dayOffsets}
+                    dateCols={dateCols}
+                    daysOfWeek={daysOfWeek}
+                />
+                <CalendarBody
+                    dayOffsets={dayOffsets}
+                    dateCols={dateCols}
+                    daysOfWeek={daysOfWeek}
+                    gridTemplateColumns={gridTemplateColumns}
+                    computeGridPos={computeGridPos}
+                />
             </div>
         </div>
     );
 }
 
-type ColumnProps = { date: Date; daysOfWeek: string[] };
-function Column({ date, daysOfWeek }: ColumnProps) {
-    const day = date.getDay();
-    const bold = isToday(date) ? "font-bold" : "";
-    const dayOfWeek = daysOfWeek[day];
-    const randOffset = hours(Math.floor(Math.random() * 10));
+type CalendarChildProps = {
+    dayOffsets: number[];
+    dateCols: Date[];
+    daysOfWeek: string[];
+};
+function CalendarHeader({
+    dayOffsets,
+    dateCols,
+    daysOfWeek,
+}: CalendarChildProps) {
     return (
-        <div className="flex h-full flex-auto flex-col border-x-2 bg-slate-100 p-1">
-            <p className={[bold].join(" ")}>
-                {dayOfWeek} {date.getDate()}
-            </p>
-            <EventCol
-                events={[
-                    {
-                        name: "EVENT",
-                        start: dateSub(date, randOffset),
-                        duration: hours(Math.floor(Math.random() * 5) + 1),
-                    },
-                ]}
-            />
-        </div>
+        <>
+            {dayOffsets.map((dayOffset) => {
+                const date = dateCols[dayOffset];
+                const day = date.getDay();
+                const bold = isToday(date) ? "font-bold" : "";
+                const dayOfWeek = daysOfWeek[day];
+                return (
+                    <h1
+                        key={dayOffset + date.toString()}
+                        className={[
+                            "row-start-[heading-start] row-end-[heading-end]",
+                            bold,
+                        ].join(" ")}
+                        style={{
+                            gridColumnStart: dayOffset + 1,
+                            gridColumnEnd: dayOffset + 2,
+                        }}
+                    >
+                        {dayOfWeek} {date.getDate()}
+                    </h1>
+                );
+            })}
+        </>
     );
 }
 
-type EventColProps = { events: EventProps[] };
-function EventCol({ events }: EventColProps) {
-    const percentage = Math.floor(10000 / TOTAL_SLOTS) / 100;
+type CalendarBodyProps = CalendarChildProps & {
+    gridTemplateColumns: string;
+    computeGridPos: (datetime: Date) => GridPos;
+};
+function CalendarBody({
+    dayOffsets,
+    gridTemplateColumns,
+    computeGridPos,
+}: CalendarBodyProps) {
+    const displayedDays = dayOffsets.length;
+    const randOffset = hours(1);
+    const events = [
+        {
+            name: "EVENT",
+            start: dateSub(new Date(2024, 2, 7, 10, 0), randOffset),
+            duration: minutes(30),
+        },
+        {
+            name: "EVENT",
+            start: dateSub(new Date(2024, 2, 5, 10, 0), randOffset),
+            duration: hours(5),
+        },
+        {
+            name: "EVENT",
+            start: dateSub(new Date(2024, 2, 4, 10, 0), randOffset),
+            duration: hours(10),
+        },
+        {
+            name: "EVENT",
+            start: dateSub(new Date(2024, 2, 8, 10, 0), randOffset),
+            duration: hours(4),
+        },
+        {
+            name: "EVENT",
+            start: dateSub(new Date(2024, 2, 9, 10, 0), randOffset),
+            duration: hours(15),
+        },
+    ];
     return (
         <div
-            className="grid flex-grow grid-cols-1 items-center bg-blue-300 p-1"
+            className="row-start-[heading-end] row-end-[body-end] grid h-full overflow-hidden"
             style={{
-                gridTemplateRows: `repeat(${TOTAL_SLOTS}, ${percentage}%`,
+                gridColumnStart: 1,
+                gridColumnEnd: displayedDays + 1,
+                gridTemplateColumns,
+                gridTemplateRows: `repeat(${TOTAL_SLOTS_PER_DAY}, ${PERCENTAGE_PER_SLOT}%)`,
             }}
         >
             {events.map((event) => (
                 <Event
-                    // key={event}
+                    key={event.name + event.start + event.duration}
                     name={event.name}
                     start={event.start}
                     duration={event.duration}
-                    key={event.name + event.start + event.duration}
+                    computeGridPos={computeGridPos}
                 />
             ))}
         </div>
     );
 }
 
-type EventProps = { name: string; start: Date; duration: number };
-function Event({ name, start, duration }: EventProps) {
-    const startSlot = dateToSlot(start);
-    const durationSlots = toSlots(duration);
-    const endSlot = startSlot + durationSlots;
-    console.log("Duration: ", durationSlots);
-
-    console.log(startSlot, endSlot);
-
-    return (
-        <div
-            className="col-span-1 h-full w-full overflow-hidden bg-white"
-            draggable={true}
-            style={{ gridRowStart: startSlot, gridRowEnd: endSlot }}
-            // style={{ height: percentage }}
-        >
-            <h1>{name}</h1>
-            <p>{start.toTimeString()}</p>
-        </div>
-    );
+type EventProps = {
+    name: string;
+    start: Date;
+    duration: number;
+    computeGridPos: (datetime: Date) => GridPos;
+};
+function Event({ name, start, duration, computeGridPos }: EventProps) {
+    const startSlot = computeGridPos(start);
+    const end = dateAdd(start, Math.max(duration, minutes(MINUTES_PER_SLOT)));
+    const endSlot = computeGridPos(end);
+    const slots = Array.from(Array(endSlot.col + 1 - startSlot.col).keys())
+        .map((key) => key + startSlot.col)
+        .map((col) => {
+            const gridRowStart = col === startSlot.col ? startSlot.row : 1;
+            const gridRowEnd =
+                col === endSlot.col ? endSlot.row : TOTAL_SLOTS_PER_DAY + 1;
+            console.log(`col ${col}, rows ${gridRowStart}:${gridRowEnd}`);
+            if (gridRowStart === gridRowEnd) {
+                return;
+            }
+            return (
+                <div
+                    className="h-full w-full overflow-hidden rounded-md border-2 border-slate-100 bg-white"
+                    draggable={true}
+                    style={{
+                        gridColumnStart: col,
+                        gridColumnEnd: col,
+                        gridRowStart,
+                        gridRowEnd,
+                    }}
+                >
+                    <h1>{name}</h1>
+                    {/* <p>{start.toTimeString()}</p> */}
+                </div>
+            );
+        });
+    return <>{slots}</>;
 }
 
-export { Calendar, TaskList, EventCol as DayCol, Event };
 export default App;

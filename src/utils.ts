@@ -1,5 +1,7 @@
 export const MINUTES_PER_SLOT = 15;
-export const TOTAL_SLOTS = toSlots(hours(24));
+export const TOTAL_SLOTS_PER_DAY = toSlots(hours(24));
+export const PERCENTAGE_PER_SLOT =
+    Math.floor(10000 / TOTAL_SLOTS_PER_DAY) / 100;
 export const PIXELS_PER_SLOT = 9;
 
 /**
@@ -189,3 +191,8 @@ export function slotToDate(slot: number, date: Date = new Date()) {
     const midnight = removeTime(date);
     return dateAdd(midnight, fromSlots(slot));
 }
+
+export type GridPos = {
+    col: number;
+    row: number;
+};
