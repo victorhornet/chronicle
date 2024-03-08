@@ -2,7 +2,7 @@ export const MINUTES_PER_SLOT = 15;
 export const TOTAL_SLOTS_PER_DAY = toSlots(hours(24));
 export const PERCENTAGE_PER_SLOT =
     Math.floor(10000 / TOTAL_SLOTS_PER_DAY) / 100;
-export const PIXELS_PER_SLOT = 9;
+export const PIXELS_PER_SLOT = 20;
 
 /**
  * Compares two dates for equality, ignoring time.
@@ -196,3 +196,17 @@ export type GridPos = {
     col: number;
     row: number;
 };
+
+type EventSchedule = {
+    start: Date;
+    duration: number;
+};
+function schedule(
+    event: EventSchedule,
+    events: EventSchedule[],
+): EventSchedule {
+    const start = new Date(event.start.getTime());
+    const duration = event.duration;
+    const end = dateAdd(start, event.duration);
+    return { start, duration };
+}
