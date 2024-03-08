@@ -50,7 +50,10 @@ type RescheduleEventArgs = {
     allDay: boolean;
 };
 
-function MyCalendar() {
+export type MyCalendarProps = {
+    draggedTask: string | null;
+};
+function MyCalendar({ draggedTask }: MyCalendarProps) {
     const [events, setEvents] = useState<Event[]>([
         {
             id: 3,
@@ -132,10 +135,14 @@ function MyCalendar() {
     const createEvent = useCallback(
         ({ start, end, allDay }: RescheduleEventArgs) => {
             setEvents((prev) => {
+                const eventName = draggedTask ?? newEventPopup();
+                if (eventName === null || eventName === "") {
+                    return prev;
+                }
                 const duration = intervalToDuration(interval(start, end));
                 const newEvent: Event = {
                     id: prev.length,
-                    title: "NEW EVENT",
+                    title: eventName,
                     resizable: true,
                     allDay: allDay ?? false,
                     start,
@@ -144,7 +151,7 @@ function MyCalendar() {
                 return [...prev, newEvent];
             });
         },
-        [setEvents],
+        [draggedTask, setEvents],
     );
 
     // ES
@@ -181,6 +188,11 @@ function MyCalendar() {
             />
         </div>
     );
+}
+
+//todo prompt is not supported by tauri, have an actual pop up
+function newEventPopup() {
+    return prompt("Event name:", "Unnamed Event");
 }
 
 export default MyCalendar;

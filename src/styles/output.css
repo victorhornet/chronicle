@@ -552,32 +552,12 @@ video {
   position: relative;
 }
 
-.row-start-\[heading-end\] {
-  grid-row-start: heading-end;
-}
-
-.row-start-\[heading-start\] {
-  grid-row-start: heading-start;
-}
-
-.row-end-\[body-end\] {
-  grid-row-end: body-end;
-}
-
-.row-end-\[heading-end\] {
-  grid-row-end: heading-end;
-}
-
 .m-2 {
   margin: 0.5rem;
 }
 
 .flex {
   display: flex;
-}
-
-.grid {
-  display: grid;
 }
 
 .h-full {
@@ -592,10 +572,6 @@ video {
   width: 16.666667%;
 }
 
-.w-full {
-  width: 100%;
-}
-
 .flex-auto {
   flex: 1 1 auto;
 }
@@ -604,36 +580,12 @@ video {
   flex: 0 1 auto;
 }
 
-.flex-grow {
-  flex-grow: 1;
-}
-
 .flex-row {
   flex-direction: row;
 }
 
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-}
-
-.overflow-scroll {
-  overflow: scroll;
-}
-
-.overflow-x-auto {
-  overflow-x: auto;
-}
-
-.overflow-y-scroll {
-  overflow-y: scroll;
+.overflow-x-scroll {
+  overflow-x: scroll;
 }
 
 .rounded {
@@ -644,48 +596,14 @@ video {
   border-radius: 0.375rem;
 }
 
-.border-2 {
-  border-width: 2px;
-}
-
 .border-slate-100 {
   --tw-border-opacity: 1;
   border-color: rgb(241 245 249 / var(--tw-border-opacity));
 }
 
-.border-slate-300 {
-  --tw-border-opacity: 1;
-  border-color: rgb(203 213 225 / var(--tw-border-opacity));
-}
-
-.bg-slate-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(241 245 249 / var(--tw-bg-opacity));
-}
-
 .bg-slate-200 {
   --tw-bg-opacity: 1;
   background-color: rgb(226 232 240 / var(--tw-bg-opacity));
-}
-
-.bg-slate-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(148 163 184 / var(--tw-bg-opacity));
-}
-
-.bg-slate-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(100 116 139 / var(--tw-bg-opacity));
-}
-
-.bg-white {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-}
-
-.bg-slate-300 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(203 213 225 / var(--tw-bg-opacity));
 }
 
 .bg-slate-50 {
@@ -703,18 +621,9 @@ video {
   padding-bottom: 0.25rem;
 }
 
-.text-4xl {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
-}
-
-.font-bold {
-  font-weight: 700;
 }
 
 .font-extrabold {
