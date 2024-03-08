@@ -584,10 +584,6 @@ video {
   flex-direction: row;
 }
 
-.overflow-x-scroll {
-  overflow-x: scroll;
-}
-
 .rounded {
   border-radius: 0.25rem;
 }

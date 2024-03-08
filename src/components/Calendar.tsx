@@ -9,6 +9,7 @@ import {
     getDay,
     interval,
     intervalToDuration,
+    sub,
 } from "date-fns";
 import enUS from "date-fns/locale/en-US";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -52,8 +53,9 @@ type RescheduleEventArgs = {
 
 export type MyCalendarProps = {
     draggedTask: string | null;
+    resetDraggedTask: () => void;
 };
-function MyCalendar({ draggedTask }: MyCalendarProps) {
+function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
     const [events, setEvents] = useState<Event[]>([
         {
             id: 3,
@@ -91,46 +93,133 @@ function MyCalendar({ draggedTask }: MyCalendarProps) {
         // Add more events here
     ]);
 
-    const manuallyRescheduleEvent = useCallback(
+    const checkCollisions = useCallback(
+        (event: Event): (Collision | null)[] => {
+            const collisions = events
+                .filter((ev) => ev.id !== event.id)
+                .map((other) => {
+                    const event_end = getEnd(event);
+                    const other_end = getEnd(other);
+
+                    if (
+                        other.start === event.start &&
+                        other_end === event_end
+                    ) {
+                        const res: Collision = { colType: "overlapsOther" };
+                        return res;
+                    }
+                    if (event.start < other.start && other_end < event_end) {
+                        const res: Collision = { colType: "containsOther" };
+                        return res;
+                    }
+                    if (other.start < event.start && event_end < other_end) {
+                        const res: Collision = { colType: "containedByOther" };
+                        return res;
+                    }
+                    if (other.start <= event.start && event.start < other_end) {
+                        const res: Collision = {
+                            colType: "startCollides",
+                            otherEnd: other_end,
+                        };
+                        return res;
+                    }
+                    if (other.start < event_end && event_end <= other_end) {
+                        const res: Collision = {
+                            colType: "endCollides",
+                            otherStart: other.start,
+                        };
+                        return res;
+                    }
+                    return null;
+                })
+                .filter((collision) => collision !== null);
+            console.log(collisions);
+            return collisions;
+        },
+        [events],
+    );
+
+    const scheduleFlexibleEvent = useCallback(
+        (event: Event) => {
+            let rescheduledEvent = { ...event };
+            checkCollisions(event).forEach((col) => {
+                switch (col?.colType) {
+                    case "startCollides":
+                        rescheduledEvent = {
+                            ...rescheduledEvent,
+                            start: col.otherEnd,
+                            duration: intervalToDuration(
+                                interval(
+                                    rescheduledEvent.start,
+                                    sub(
+                                        getEnd(rescheduledEvent),
+                                        intervalToDuration(
+                                            interval(
+                                                rescheduledEvent.start,
+                                                col.otherEnd,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        };
+                        break;
+                    case "endCollides":
+                        rescheduledEvent = {
+                            ...rescheduledEvent,
+                            duration: intervalToDuration(
+                                interval(
+                                    rescheduledEvent.start,
+                                    col.otherStart,
+                                ),
+                            ),
+                        };
+                        break;
+                    default:
+                        break;
+                }
+            });
+            return rescheduledEvent;
+        },
+        [events, checkCollisions],
+    );
+
+    const manuallyScheduleEvent = useCallback(
         ({ event, start, end, allDay }: RescheduleEventArgs) => {
-            const duration = intervalToDuration(interval(start, end));
-            const newEvent: Event = {
-                ...event,
-                allDay,
-                start,
-                duration,
-            };
             setEvents((prev) => {
+                const duration = intervalToDuration(interval(start, end));
+                const newEvent: Event = scheduleFlexibleEvent({
+                    ...event,
+                    allDay,
+                    start,
+                    duration,
+                });
                 const existing = prev.find((ev) => ev.id === event.id) ?? {};
                 const filtered = prev.filter((ev) => ev.id !== event.id);
                 return [...filtered, { ...existing, ...newEvent }];
             });
         },
-        [setEvents],
+        [setEvents, scheduleFlexibleEvent],
     );
 
-    const checkCollisions = useCallback(
-        (event: Event) => {
-            events.map((other) => {
-                const event_end = getEnd(event);
-                const other_end = getEnd(other);
-                const startCollides =
-                    other.start <= event.start && event.start < other_end;
-                const endCollides =
-                    other.start < event_end && event_end <= other_end;
-                const containsOther =
-                    event.start < other.start && other_end < event_end;
-                const isContainedByOther =
-                    other.start < event.start && event_end < other_end;
-                const overlapsOther =
-                    other.start === event.start && other_end === event_end;
-                const full_collision = containsOther || isContainedByOther;
-                if (!full_collision) {
-                }
-            });
-        },
-        [events],
-    );
+    type Collision =
+        | {
+              colType: "overlapsOther";
+          }
+        | {
+              colType: "containsOther";
+          }
+        | {
+              colType: "containedByOther";
+          }
+        | {
+              colType: "startCollides";
+              otherEnd: Date;
+          }
+        | {
+              colType: "endCollides";
+              otherStart: Date;
+          };
 
     const createEvent = useCallback(
         ({ start, end, allDay }: RescheduleEventArgs) => {
@@ -148,6 +237,9 @@ function MyCalendar({ draggedTask }: MyCalendarProps) {
                     start,
                     duration,
                 };
+                if (draggedTask !== null) {
+                    resetDraggedTask();
+                }
                 return [...prev, newEvent];
             });
         },
@@ -175,9 +267,9 @@ function MyCalendar({ draggedTask }: MyCalendarProps) {
                 //@ts-ignore
                 allDayAccessor={(e) => e.allDay}
                 //@ts-ignore
-                onEventDrop={manuallyRescheduleEvent}
+                onEventDrop={manuallyScheduleEvent}
                 //@ts-ignore
-                onEventResize={manuallyRescheduleEvent}
+                onEventResize={manuallyScheduleEvent}
                 //@ts-ignore
                 onDropFromOutside={createEvent}
                 //@ts-ignore

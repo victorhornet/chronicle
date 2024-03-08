@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Calendar from "./Calendar";
 import TaskList from "./TaskList";
 
@@ -8,11 +8,17 @@ export default function CalAndTasks() {
         console.log(task);
         setDraggedTask(task);
     };
+    const resetDraggedTask = useCallback(() => {
+        setDraggedTask(null);
+    }, [setDraggedTask]);
     return (
         <>
             <div className="flex h-full flex-row">
                 <TaskList handleDragStart={handleDragStart} />
-                <Calendar draggedTask={draggedTask} />
+                <Calendar
+                    draggedTask={draggedTask}
+                    resetDraggedTask={resetDraggedTask}
+                />
             </div>
         </>
     );
