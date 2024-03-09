@@ -16,13 +16,13 @@ import {
     Event,
     getEnd,
     checkConstraints,
-    growEvent,
 } from "../utils";
 import enUS from "date-fns/locale/en-US";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+import "../styles/Calendar.css";
 
 const locales = {
     "en-US": enUS,
@@ -62,7 +62,7 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
         {
             id: 1,
             title: "💤 Sleep",
-            start: new Date(2024, 2, 5, 18),
+            start: new Date(2024, 2, 5, 22),
             duration: { hours: 8 },
             allDay: false,
             resizable: true,
@@ -111,7 +111,24 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
                 allowedDays: { days: [1, 3, 5] },
             },
         },
-
+        {
+            id: 5,
+            title: "Breakfast",
+            start: new Date(2024, 2, 8, 9, 30),
+            duration: { minutes: 30 },
+            allDay: false,
+            resizable: true,
+            schedulingConstraints: {
+                startTime: {
+                    minStart: new Date(0, 0, 0, 9, 15),
+                    maxStart: new Date(0, 0, 0, 10, 0),
+                },
+                durationConstraint: {
+                    minDuration: { minutes: 15 },
+                    maxDuration: { minutes: 45 },
+                },
+            },
+        },
         // Add more events here
     ]);
 
@@ -191,21 +208,24 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
                     return prev;
                 }
                 const duration = intervalToDuration(interval(start, end));
-                const newEvent: Event = {
+                const result = scheduleFlexibleEvent({
                     id: prev.length,
                     title: eventName,
                     resizable: true,
                     allDay: allDay ?? false,
                     start,
                     duration,
-                };
+                });
+                if (!result.scheduleSuccess) {
+                    return prev;
+                }
                 if (draggedTask !== null) {
                     resetDraggedTask();
                 }
-                return [...prev, newEvent];
+                return [...prev, result.event];
             });
         },
-        [draggedTask, setEvents],
+        [draggedTask, setEvents, scheduleFlexibleEvent],
     );
 
     return (
@@ -234,6 +254,9 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
                 resizable
                 selectable
                 resizableAccessor={() => true}
+                timeslots={4}
+                step={15}
+                scrollToTime={new Date()}
             />
         </div>
     );
