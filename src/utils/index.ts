@@ -7,6 +7,7 @@ import {
     milliseconds,
     sub,
 } from "date-fns";
+import { setMilliseconds } from "date-fns/setMilliseconds";
 
 export const MINUTES_PER_SLOT = 15;
 export const TOTAL_SLOTS_PER_DAY = toSlots(hours(24));
@@ -308,8 +309,57 @@ export function findCollisions(
             return null;
         })
         .filter((collision) => collision !== null);
-    console.log(collisions);
+
     return collisions;
+}
+
+export function growEvent(event: Event, others: Event[]): Event {
+    const startDay = removeTime(event.start);
+    const endDay = removeTime(getEnd(event));
+    const endBorder = add(endDay, { hours: 23, minutes: 59 });
+    const sortedEvents = [...others]
+        .map((ev) => {
+            return { ...ev, end: getEnd(ev) };
+        })
+        .filter(
+            (ev) =>
+                ev.id !== event.id &&
+                (removeTime(ev.start).getTime() === endDay.getTime() ||
+                    removeTime(ev.end).getTime() === startDay.getTime()),
+        )
+        .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    const newEvent = { ...event };
+    for (let i = 0; i <= sortedEvents.length; i++) {
+        const freeSlotStart = sortedEvents[i]?.end ?? startDay;
+        const freeSlotEnd = sortedEvents[i + 1]?.start ?? endBorder;
+        const freeSlot = interval(freeSlotStart, freeSlotEnd);
+        console.log(freeSlot);
+
+        if (!areIntervalsOverlapping(toInterval(event), freeSlot)) {
+            continue;
+        }
+        if (freeSlotStart < event.start) {
+            const minStart =
+                newEvent.schedulingConstraints?.startTime?.minStart;
+            newEvent.start =
+                minStart === undefined ||
+                minStart.getTime() < freeSlotStart.getTime()
+                    ? freeSlotStart
+                    : minStart;
+        }
+        if (getEnd(newEvent) < freeSlotEnd) {
+            const maxEnd = newEvent.schedulingConstraints?.endTime?.maxEnd;
+            const newEnd =
+                maxEnd === undefined || freeSlotEnd < maxEnd
+                    ? freeSlotEnd
+                    : maxEnd;
+            newEvent.duration = durationBetween(newEvent.start, newEnd);
+        }
+    }
+    console.log(newEvent);
+
+    return newEvent;
 }
 
 export type Event = {
@@ -338,7 +388,10 @@ export type ScheduleConstraints = {
 type ScheduleResult =
     | { scheduleSuccess: true; event: Event }
     | { scheduleSuccess: false };
-export function checkConstraints(event: Event): ScheduleResult {
+export function checkConstraints(
+    event: Event,
+    tries: number = 5,
+): ScheduleResult {
     const start = event.start;
     const end = getEnd(event);
     if (event.schedulingConstraints === undefined) {
@@ -346,6 +399,9 @@ export function checkConstraints(event: Event): ScheduleResult {
     }
     const constraints = event.schedulingConstraints;
     if (constraints.durationConstraint !== undefined) {
+        if (tries <= 0) {
+            return { scheduleSuccess: false };
+        }
         console.log(event.duration, constraints.durationConstraint);
         const minDuration = constraints.durationConstraint.minDuration;
         const maxDuration = constraints.durationConstraint.maxDuration;
@@ -354,43 +410,94 @@ export function checkConstraints(event: Event): ScheduleResult {
             return { scheduleSuccess: false };
         }
         if (maxDuration !== undefined && duration > milliseconds(maxDuration)) {
-            return {
-                scheduleSuccess: true,
-                event: { ...event, duration: maxDuration },
-            };
+            return checkConstraints(
+                { ...event, duration: maxDuration },
+                tries - 1,
+            );
         }
     }
     if (constraints.startTime !== undefined) {
+        if (tries <= 0) {
+            return { scheduleSuccess: false };
+        }
         const startTime = removeDate(start);
         if (
             startTime.getTime() <
             removeDate(constraints.startTime.minStart).getTime()
         ) {
-            return { scheduleSuccess: false };
+            return checkConstraints(
+                {
+                    ...event,
+                    start: add(removeTime(start), {
+                        hours: constraints.startTime.minStart.getHours(),
+                        minutes: constraints.startTime.minStart.getMinutes(),
+                    }),
+                },
+                tries - 1,
+            );
         }
         if (
             constraints.startTime.maxStart !== undefined &&
             startTime.getTime() >
                 removeDate(constraints.startTime.maxStart).getTime()
         ) {
-            return { scheduleSuccess: false };
+            return checkConstraints(
+                {
+                    ...event,
+                    start: add(removeTime(start), {
+                        hours: constraints.startTime.maxStart.getHours(),
+                        minutes: constraints.startTime.maxStart.getMinutes(),
+                    }),
+                },
+                tries - 1,
+            );
         }
     }
     if (constraints.endTime !== undefined) {
+        if (tries <= 0) {
+            return { scheduleSuccess: false };
+        }
         const endTime = removeDate(end);
         if (
             endTime.getTime() < removeDate(constraints.endTime.minEnd).getTime()
         ) {
-            return { scheduleSuccess: false };
+            return checkConstraints(
+                {
+                    ...event,
+                    duration: durationBetween(
+                        event.start,
+                        add(removeTime(start), {
+                            hours: constraints.endTime.minEnd.getHours(),
+                            minutes: constraints.endTime.minEnd.getMinutes(),
+                        }),
+                    ),
+                },
+                tries - 1,
+            );
         }
         if (
             constraints.endTime.maxEnd !== undefined &&
             endTime.getTime() > removeDate(constraints.endTime.maxEnd).getTime()
         ) {
-            return { scheduleSuccess: false };
+            return checkConstraints(
+                {
+                    ...event,
+                    duration: durationBetween(
+                        event.start,
+                        add(removeTime(start), {
+                            hours: constraints.endTime.maxEnd.getHours(),
+                            minutes: constraints.endTime.maxEnd.getMinutes(),
+                        }),
+                    ),
+                },
+                tries - 1,
+            );
         }
     }
     if (constraints.allowedDays !== undefined) {
+        if (tries <= 0) {
+            return { scheduleSuccess: false };
+        }
         if (
             !constraints.allowedDays.days.includes(
                 start.getDay() as DayOfWeekNum,
@@ -435,7 +542,16 @@ type AllowedDaysConstraint = {
 
 type DayOfWeekNum = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-function reschedule(events: Event[]): Event[] {
+/**
+ * Reschedules upcoming events to fit their constraints.
+ * If the event cannot be rescheduled, it is left as is.
+ * First, the event's duration is increased to fit the constraints.
+ * (todo) Then, the event's start time is adjusted to fit the constraints.
+ * (todo) Finally, the event's end time is adjusted to fit the constraints.
+ * @param events to reschedule
+ * @returns updated list of events
+ */
+export function reschedule(events: Event[]): Event[] {
     const passed = events.filter(
         (event) => event.start.getTime() < new Date().getTime(),
     );
@@ -443,10 +559,23 @@ function reschedule(events: Event[]): Event[] {
         (event) => event.start.getTime() >= new Date().getTime(),
     );
     upcoming.sort((a, b) => a.start.getTime() - b.start.getTime());
-    const schedulingInterval = interval(
-        upcoming[0].start,
-        add(getEnd(upcoming[upcoming.length - 1]), { days: 1 }),
-    );
-    //todo reschedule upcoming events
+    for (let i = 0; i < upcoming.length; i++) {
+        const event = upcoming[i];
+        const next = upcoming[i + 1];
+        if (next === undefined) {
+            break;
+        }
+        const rescheduleResult = checkConstraints({
+            ...event,
+            duration: durationBetween(event.start, next.start),
+        });
+        if (rescheduleResult.scheduleSuccess) {
+            upcoming[i] = rescheduleResult.event;
+        }
+    }
+    // const schedulingInterval = interval(
+    //     upcoming[0].start,
+    //     add(getEnd(upcoming[upcoming.length - 1]), { days: 1 }),
+    // );
     return [...passed, ...upcoming];
 }

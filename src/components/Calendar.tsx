@@ -16,6 +16,7 @@ import {
     Event,
     getEnd,
     checkConstraints,
+    growEvent,
 } from "../utils";
 import enUS from "date-fns/locale/en-US";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -51,19 +52,10 @@ export type MyCalendarProps = {
 function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
     const [events, setEvents] = useState<Event[]>([
         {
-            id: 3,
-            title: "Appointment",
-            start: new Date(2024, 2, 7, 8), // Note: JavaScript months are 0-based
-            duration: { hours: 1, minutes: 15 },
-            allDay: false,
-            static: true,
-            resizable: true,
-        },
-        {
-            id: 2,
-            title: "Vacation",
-            start: new Date(2024, 2, 5, 22),
-            duration: { hours: 1, minutes: 59 },
+            id: 0,
+            title: "Pacation",
+            start: new Date(2024, 2, 3, 20),
+            duration: { hours: 3, minutes: 59 },
             allDay: false,
             resizable: true,
         },
@@ -82,13 +74,44 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
             },
         },
         {
-            id: 0,
-            title: "Pacation",
-            start: new Date(2024, 2, 5, 20),
-            duration: { hours: 3, minutes: 59 },
+            id: 2,
+            title: "Vacation",
+            start: new Date(2024, 2, 4, 22),
+            duration: { hours: 1, minutes: 59 },
             allDay: false,
             resizable: true,
         },
+
+        {
+            id: 3,
+            title: "Start between 07:00 and 10:00\nEnd between 12:00 and 13:00",
+            start: new Date(2024, 2, 7, 8), // Note: JavaScript months are 0-based
+            duration: { hours: 1, minutes: 15 },
+            allDay: false,
+            resizable: true,
+            schedulingConstraints: {
+                startTime: {
+                    minStart: new Date(0, 0, 0, 7, 0),
+                    maxStart: new Date(0, 0, 0, 10, 0),
+                },
+                endTime: {
+                    minEnd: new Date(0, 0, 0, 12, 0),
+                    maxEnd: new Date(0, 0, 0, 13, 0),
+                },
+            },
+        },
+        {
+            id: 4,
+            title: "Only monday, wednesday, friday",
+            start: new Date(2024, 2, 6, 18),
+            duration: { hours: 8 },
+            allDay: false,
+            resizable: true,
+            schedulingConstraints: {
+                allowedDays: { days: [1, 3, 5] },
+            },
+        },
+
         // Add more events here
     ]);
 
@@ -147,9 +170,14 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
                 if (!result.scheduleSuccess) {
                     return prev;
                 }
+
                 const existing = prev.find((ev) => ev.id === event.id) ?? {};
                 const filtered = prev.filter((ev) => ev.id !== event.id);
-                return [...filtered, { ...existing, ...result.event }];
+                const newEvents = [
+                    ...filtered,
+                    { ...existing, ...result.event },
+                ];
+                return newEvents;
             });
         },
         [setEvents, scheduleFlexibleEvent],
