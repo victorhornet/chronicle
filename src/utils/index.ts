@@ -5,9 +5,10 @@ import {
     interval,
     intervalToDuration,
     milliseconds,
+    millisecondsToHours,
+    millisecondsToMinutes,
     sub,
 } from "date-fns";
-import { setMilliseconds } from "date-fns/setMilliseconds";
 
 export const MINUTES_PER_SLOT = 15;
 export const TOTAL_SLOTS_PER_DAY = toSlots(hours(24));
@@ -371,8 +372,38 @@ export type Event = {
     schedulingConstraints?: ScheduleConstraints;
     static?: boolean;
     resizable: boolean;
+    color?: Color;
+    categoryOverride?: string;
     // end: Date;
 };
+
+export type TimeSlot = {
+    id: number;
+    title: string;
+    start: Date;
+    duration: Duration;
+    days: DayOfWeekNum[];
+    color: Color;
+    timeslot: true;
+};
+
+export const WORKDAYS: DayOfWeekNum[] = [1, 2, 3, 4, 5];
+export const WEEKEND: DayOfWeekNum[] = [0, 6];
+export const WEEKDAYS: DayOfWeekNum[] = [0, 1, 2, 3, 4, 5, 6];
+
+export type Color =
+    | "red"
+    | "orange"
+    | "yellow"
+    | "green"
+    | "blue"
+    | "cyan"
+    | "purple"
+    | "pink"
+    | "brown"
+    | "grey"
+    | "black"
+    | "white";
 
 export function getEnd(event: Event) {
     return add(event.start, event.duration);
@@ -579,3 +610,81 @@ export function reschedule(events: Event[]): Event[] {
     // );
     return [...passed, ...upcoming];
 }
+
+/**
+ * Filters the given events to only include those that are scheduled for the given day.
+ * @returns a new array containing only the events that are scheduled for the given day
+ */
+export function filterDaysEvents(day: Date, events: Event[]): Event[] {
+    return events.filter((event) => dateEquals(event.start, day));
+}
+
+/**
+ * Filters the given events to only include those that are scheduled for the given week.
+ * @returns a new array containing only the events that are scheduled for the given week
+ */
+export function filterWeeksEvents(day: Date, events: Event[]): Event[] {
+    const dayOfWeek = day.getDay();
+    const start = removeTime(sub(day, { days: dayOfWeek }));
+    const end = add(start, { days: 7 });
+    return events.filter(
+        (event) =>
+            event.start.getTime() >= start.getTime() &&
+            event.start.getTime() < end.getTime(),
+    );
+}
+
+export function extractCategoryHours(events: Event[]): {
+    [key: string]: number;
+} {
+    let categories: {
+        [key: string]: number;
+    } = {};
+    events.forEach((event) => {
+        const category = event.categoryOverride ?? "Default";
+        if (categories[category] === undefined) {
+            categories[category] = 0;
+        }
+
+        categories[category] += millisecondsToMinutes(
+            milliseconds(event.duration),
+        );
+    });
+    return categories;
+}
+
+export function analyzeDay(
+    day: Date,
+    events: Event[],
+): {
+    totalMinutes: number;
+    categoryMinutes: { [key: string]: number };
+    categoryPercentages: [string, number][];
+} {
+    const todays = filterDaysEvents(day, events);
+    const categoryMinutes = extractCategoryHours(todays);
+    const totalMinutes = MINUTES_IN_DAY;
+    const categoryPercentages: [string, number][] = Object.entries(
+        categoryMinutes,
+    ).map(([category, minutes]) => [category, (minutes / totalMinutes) * 100]);
+    return { totalMinutes, categoryMinutes, categoryPercentages };
+}
+
+export function analyzeWeek(
+    day: Date,
+    events: Event[],
+): {
+    totalMinutes: number;
+    categoryMinutes: { [key: string]: number };
+    categoryPercentages: [string, number][];
+} {
+    const weeks = filterWeeksEvents(day, events);
+    const categoryMinutes = extractCategoryHours(weeks);
+    const totalMinutes = MINUTES_IN_DAY * 7;
+    const categoryPercentages: [string, number][] = Object.entries(
+        categoryMinutes,
+    ).map(([category, minutes]) => [category, (minutes / totalMinutes) * 100]);
+    return { totalMinutes, categoryMinutes, categoryPercentages };
+}
+
+const MINUTES_IN_DAY = 1440;

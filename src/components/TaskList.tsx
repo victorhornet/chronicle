@@ -2,7 +2,7 @@ export type TaskListProps = { handleDragStart: (task: string) => void };
 export default function TaskList({ handleDragStart }: TaskListProps) {
     let tasks: string[] = ["test", "best", "jest"];
     return (
-        <div className="w-1/6 flex-initial bg-slate-200">
+        <>
             <h1 className="text-xl font-extrabold">Tasks</h1>
             <ul>
                 {tasks.map((task) => (
@@ -16,6 +16,6 @@ export default function TaskList({ handleDragStart }: TaskListProps) {
                     </li>
                 ))}
             </ul>
-        </div>
+        </>
     );
 }

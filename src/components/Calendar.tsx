@@ -16,6 +16,9 @@ import {
     Event,
     getEnd,
     checkConstraints,
+    TimeSlot,
+    WORKDAYS,
+    WEEKDAYS,
 } from "../utils";
 import enUS from "date-fns/locale/en-US";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
@@ -48,88 +51,70 @@ type RescheduleEventArgs = {
 export type MyCalendarProps = {
     draggedTask: string | null;
     resetDraggedTask: () => void;
+    events: Event[];
+    setEvents: React.Dispatch<React.SetStateAction<Event[]>>;
 };
-function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
-    const [events, setEvents] = useState<Event[]>([
+function MyCalendar({
+    draggedTask,
+    resetDraggedTask,
+    events,
+    setEvents,
+}: MyCalendarProps) {
+    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
         {
             id: 0,
-            title: "Pacation",
-            start: new Date(2024, 2, 3, 20),
-            duration: { hours: 3, minutes: 59 },
-            allDay: false,
-            resizable: true,
+            title: "Work timeslot",
+            start: new Date(2024, 2, 18, 7, 0),
+            duration: { hours: 2, minutes: 30 },
+            days: WORKDAYS,
+            color: "red",
+            timeslot: true,
         },
         {
             id: 1,
-            title: "💤 Sleep",
-            start: new Date(2024, 2, 5, 22),
-            duration: { hours: 8 },
-            allDay: false,
-            resizable: true,
-            schedulingConstraints: {
-                durationConstraint: {
-                    minDuration: { hours: 7 },
-                    maxDuration: { hours: 9 },
-                },
-            },
+            title: "Breakfast timeslot",
+            start: new Date(2024, 2, 18, 9, 30),
+            duration: { minutes: 30 },
+            days: WEEKDAYS,
+            color: "blue",
+            timeslot: true,
         },
         {
             id: 2,
-            title: "Vacation",
-            start: new Date(2024, 2, 4, 22),
-            duration: { hours: 1, minutes: 59 },
-            allDay: false,
-            resizable: true,
+            title: "Work timeslot",
+            start: new Date(2024, 2, 18, 10, 0),
+            duration: { hours: 3 },
+            days: WORKDAYS,
+            color: "red",
+            timeslot: true,
         },
-
         {
             id: 3,
-            title: "Start between 07:00 and 10:00\nEnd between 12:00 and 13:00",
-            start: new Date(2024, 2, 7, 8), // Note: JavaScript months are 0-based
-            duration: { hours: 1, minutes: 15 },
-            allDay: false,
-            resizable: true,
-            schedulingConstraints: {
-                startTime: {
-                    minStart: new Date(0, 0, 0, 7, 0),
-                    maxStart: new Date(0, 0, 0, 10, 0),
-                },
-                endTime: {
-                    minEnd: new Date(0, 0, 0, 12, 0),
-                    maxEnd: new Date(0, 0, 0, 13, 0),
-                },
-            },
+            title: "Lunch timeslot",
+            start: new Date(2024, 2, 18, 13, 0),
+            duration: { minutes: 30 },
+            days: WEEKDAYS,
+            color: "blue",
+            timeslot: true,
         },
         {
             id: 4,
-            title: "Only monday, wednesday, friday",
-            start: new Date(2024, 2, 6, 18),
-            duration: { hours: 8 },
-            allDay: false,
-            resizable: true,
-            schedulingConstraints: {
-                allowedDays: { days: [1, 3, 5] },
-            },
+            title: "Walk timeslot",
+            start: new Date(2024, 2, 18, 13, 30),
+            duration: { minutes: 30 },
+            days: WEEKDAYS,
+            color: "green",
+            timeslot: true,
         },
         {
             id: 5,
-            title: "Breakfast",
-            start: new Date(2024, 2, 8, 9, 30),
-            duration: { minutes: 30 },
-            allDay: false,
-            resizable: true,
-            schedulingConstraints: {
-                startTime: {
-                    minStart: new Date(0, 0, 0, 9, 15),
-                    maxStart: new Date(0, 0, 0, 10, 0),
-                },
-                durationConstraint: {
-                    minDuration: { minutes: 15 },
-                    maxDuration: { minutes: 45 },
-                },
-            },
+            title: "Study timeslot",
+            start: new Date(2024, 2, 18, 14, 0),
+            duration: { minutes: 60 },
+            days: WEEKDAYS,
+            color: "orange",
+            timeslot: true,
         },
-        // Add more events here
     ]);
 
     const checkCollisions = useCallback(
@@ -231,7 +216,17 @@ function MyCalendar({ draggedTask, resetDraggedTask }: MyCalendarProps) {
     return (
         <div className="h-full flex-auto">
             <DnDCalendar
+                eventPropGetter={(ev) => {
+                    //@ts-ignore
+                    const event: Event | TimeSlot = ev;
+                    return {
+                        style: {
+                            backgroundColor: event.color ?? "blue",
+                        },
+                    };
+                }}
                 localizer={localizer}
+                backgroundEvents={timeSlots}
                 events={events}
                 allDayMaxRows={2}
                 dayLayoutAlgorithm="no-overlap"

@@ -560,6 +560,10 @@ video {
   display: flex;
 }
 
+.table {
+  display: table;
+}
+
 .h-full {
   height: 100%;
 }
@@ -572,6 +576,10 @@ video {
   width: 16.666667%;
 }
 
+.w-full {
+  width: 100%;
+}
+
 .flex-auto {
   flex: 1 1 auto;
 }
@@ -582,6 +590,18 @@ video {
 
 .flex-row {
   flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.content-center {
+  align-content: center;
+}
+
+.content-evenly {
+  align-content: space-evenly;
 }
 
 .rounded {
@@ -615,6 +635,10 @@ video {
 .py-1 {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
+}
+
+.align-middle {
+  vertical-align: middle;
 }
 
 .text-xl {
