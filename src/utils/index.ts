@@ -5,10 +5,9 @@ import {
     interval,
     intervalToDuration,
     milliseconds,
-    millisecondsToHours,
     millisecondsToMinutes,
     sub,
-} from "date-fns";
+} from 'date-fns';
 
 export const MINUTES_PER_SLOT = 15;
 export const TOTAL_SLOTS_PER_DAY = toSlots(hours(24));
@@ -20,7 +19,7 @@ export const PIXELS_PER_SLOT = 20;
  * Compares two dates for equality, ignoring time.
  * @returns true if the dates have the same day, month, and year
  */
-export function dateEquals(date1: Date, date2: Date) {
+export function getDateEquality(date1: Date, date2: Date) {
     return (
         date1.getDate() === date2.getDate() &&
         date1.getMonth() === date2.getMonth() &&
@@ -33,7 +32,7 @@ export function dateEquals(date1: Date, date2: Date) {
  * @returns true if the date is today
  */
 export function isToday(date: Date) {
-    return dateEquals(date, new Date());
+    return getDateEquality(date, new Date());
 }
 
 /**
@@ -178,7 +177,7 @@ export function normalizeDate(date: Date) {
         date.getMonth(),
         date.getDate(),
         date.getHours(),
-        normalizeMinutes(date.getMinutes()),
+        normalizeMinutes(date.getMinutes())
     );
 }
 
@@ -246,20 +245,20 @@ export function subDates(lhs: Date, rhs: Date): Duration {
 
 export type Collision =
     | {
-          colType: "overlapsOther";
+          colType: 'overlapsOther';
       }
     | {
-          colType: "containsOther";
+          colType: 'containsOther';
       }
     | {
-          colType: "containedByOther";
+          colType: 'containedByOther';
       }
     | {
-          colType: "startCollides";
+          colType: 'startCollides';
           otherEnd: Date;
       }
     | {
-          colType: "endCollides";
+          colType: 'endCollides';
           otherStart: Date;
       };
 
@@ -269,40 +268,40 @@ export function toInterval(event: Event): { start: Date; end: Date } {
 
 export function findCollisions(
     event: Event,
-    events: Event[],
+    events: Event[]
 ): (Collision | null)[] {
     const collisions = events
         .filter(
             (ev) =>
                 ev.id !== event.id &&
-                areIntervalsOverlapping(toInterval(event), toInterval(ev)),
+                areIntervalsOverlapping(toInterval(event), toInterval(ev))
         )
         .map((other) => {
             const event_end = getEnd(event);
             const other_end = getEnd(other);
 
             if (other.start === event.start && other_end === event_end) {
-                const res: Collision = { colType: "overlapsOther" };
+                const res: Collision = { colType: 'overlapsOther' };
                 return res;
             }
             if (event.start < other.start && other_end < event_end) {
-                const res: Collision = { colType: "containsOther" };
+                const res: Collision = { colType: 'containsOther' };
                 return res;
             }
             if (other.start < event.start && event_end < other_end) {
-                const res: Collision = { colType: "containedByOther" };
+                const res: Collision = { colType: 'containedByOther' };
                 return res;
             }
             if (other.start <= event.start && event.start < other_end) {
                 const res: Collision = {
-                    colType: "startCollides",
+                    colType: 'startCollides',
                     otherEnd: other_end,
                 };
                 return res;
             }
             if (other.start < event_end && event_end <= other_end) {
                 const res: Collision = {
-                    colType: "endCollides",
+                    colType: 'endCollides',
                     otherStart: other.start,
                 };
                 return res;
@@ -326,7 +325,7 @@ export function growEvent(event: Event, others: Event[]): Event {
             (ev) =>
                 ev.id !== event.id &&
                 (removeTime(ev.start).getTime() === endDay.getTime() ||
-                    removeTime(ev.end).getTime() === startDay.getTime()),
+                    removeTime(ev.end).getTime() === startDay.getTime())
         )
         .sort((a, b) => a.start.getTime() - b.start.getTime());
 
@@ -392,18 +391,18 @@ export const WEEKEND: DayOfWeekNum[] = [0, 6];
 export const WEEKDAYS: DayOfWeekNum[] = [0, 1, 2, 3, 4, 5, 6];
 
 export type Color =
-    | "red"
-    | "orange"
-    | "yellow"
-    | "green"
-    | "blue"
-    | "cyan"
-    | "purple"
-    | "pink"
-    | "brown"
-    | "grey"
-    | "black"
-    | "white";
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'cyan'
+    | 'purple'
+    | 'pink'
+    | 'brown'
+    | 'grey'
+    | 'black'
+    | 'white';
 
 export function getEnd(event: Event) {
     return add(event.start, event.duration);
@@ -421,7 +420,7 @@ type ScheduleResult =
     | { scheduleSuccess: false };
 export function checkConstraints(
     event: Event,
-    tries: number = 5,
+    tries: number = 5
 ): ScheduleResult {
     const start = event.start;
     const end = getEnd(event);
@@ -443,7 +442,7 @@ export function checkConstraints(
         if (maxDuration !== undefined && duration > milliseconds(maxDuration)) {
             return checkConstraints(
                 { ...event, duration: maxDuration },
-                tries - 1,
+                tries - 1
             );
         }
     }
@@ -464,7 +463,7 @@ export function checkConstraints(
                         minutes: constraints.startTime.minStart.getMinutes(),
                     }),
                 },
-                tries - 1,
+                tries - 1
             );
         }
         if (
@@ -480,7 +479,7 @@ export function checkConstraints(
                         minutes: constraints.startTime.maxStart.getMinutes(),
                     }),
                 },
-                tries - 1,
+                tries - 1
             );
         }
     }
@@ -500,10 +499,10 @@ export function checkConstraints(
                         add(removeTime(start), {
                             hours: constraints.endTime.minEnd.getHours(),
                             minutes: constraints.endTime.minEnd.getMinutes(),
-                        }),
+                        })
                     ),
                 },
-                tries - 1,
+                tries - 1
             );
         }
         if (
@@ -518,10 +517,10 @@ export function checkConstraints(
                         add(removeTime(start), {
                             hours: constraints.endTime.maxEnd.getHours(),
                             minutes: constraints.endTime.maxEnd.getMinutes(),
-                        }),
+                        })
                     ),
                 },
-                tries - 1,
+                tries - 1
             );
         }
     }
@@ -531,7 +530,7 @@ export function checkConstraints(
         }
         if (
             !constraints.allowedDays.days.includes(
-                start.getDay() as DayOfWeekNum,
+                start.getDay() as DayOfWeekNum
             )
         ) {
             return { scheduleSuccess: false };
@@ -584,10 +583,10 @@ type DayOfWeekNum = 0 | 1 | 2 | 3 | 4 | 5 | 6;
  */
 export function reschedule(events: Event[]): Event[] {
     const passed = events.filter(
-        (event) => event.start.getTime() < new Date().getTime(),
+        (event) => event.start.getTime() < new Date().getTime()
     );
     const upcoming = events.filter(
-        (event) => event.start.getTime() >= new Date().getTime(),
+        (event) => event.start.getTime() >= new Date().getTime()
     );
     upcoming.sort((a, b) => a.start.getTime() - b.start.getTime());
     for (let i = 0; i < upcoming.length; i++) {
@@ -616,7 +615,7 @@ export function reschedule(events: Event[]): Event[] {
  * @returns a new array containing only the events that are scheduled for the given day
  */
 export function filterDaysEvents(day: Date, events: Event[]): Event[] {
-    return events.filter((event) => dateEquals(event.start, day));
+    return events.filter((event) => getDateEquality(event.start, day));
 }
 
 /**
@@ -630,7 +629,7 @@ export function filterWeeksEvents(day: Date, events: Event[]): Event[] {
     return events.filter(
         (event) =>
             event.start.getTime() >= start.getTime() &&
-            event.start.getTime() < end.getTime(),
+            event.start.getTime() < end.getTime()
     );
 }
 
@@ -641,13 +640,13 @@ export function extractCategoryHours(events: Event[]): {
         [key: string]: number;
     } = {};
     events.forEach((event) => {
-        const category = event.categoryOverride ?? "Default";
+        const category = event.categoryOverride ?? 'Default';
         if (categories[category] === undefined) {
             categories[category] = 0;
         }
 
         categories[category] += millisecondsToMinutes(
-            milliseconds(event.duration),
+            milliseconds(event.duration)
         );
     });
     return categories;
@@ -655,7 +654,7 @@ export function extractCategoryHours(events: Event[]): {
 
 export function analyzeDay(
     day: Date,
-    events: Event[],
+    events: Event[]
 ): {
     totalMinutes: number;
     categoryMinutes: { [key: string]: number };
@@ -665,14 +664,14 @@ export function analyzeDay(
     const categoryMinutes = extractCategoryHours(todays);
     const totalMinutes = MINUTES_IN_DAY;
     const categoryPercentages: [string, number][] = Object.entries(
-        categoryMinutes,
+        categoryMinutes
     ).map(([category, minutes]) => [category, (minutes / totalMinutes) * 100]);
     return { totalMinutes, categoryMinutes, categoryPercentages };
 }
 
 export function analyzeWeek(
     day: Date,
-    events: Event[],
+    events: Event[]
 ): {
     totalMinutes: number;
     categoryMinutes: { [key: string]: number };
@@ -682,7 +681,7 @@ export function analyzeWeek(
     const categoryMinutes = extractCategoryHours(weeks);
     const totalMinutes = MINUTES_IN_DAY * 7;
     const categoryPercentages: [string, number][] = Object.entries(
-        categoryMinutes,
+        categoryMinutes
     ).map(([category, minutes]) => [category, (minutes / totalMinutes) * 100]);
     return { totalMinutes, categoryMinutes, categoryPercentages };
 }

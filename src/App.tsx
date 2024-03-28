@@ -1,5 +1,5 @@
-import CalAndTasks from "./components/CalAndTasks";
-import "./styles/App.css";
+import { CalAndTasks } from './features/calendar';
+import './styles/App.css';
 
 function App() {
     return (

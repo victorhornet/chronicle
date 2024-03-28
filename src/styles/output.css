@@ -556,6 +556,10 @@ video {
   margin: 0.5rem;
 }
 
+.block {
+  display: block;
+}
+
 .flex {
   display: flex;
 }
@@ -580,12 +584,16 @@ video {
   width: 100%;
 }
 
-.flex-auto {
-  flex: 1 1 auto;
+.flex-1 {
+  flex: 1 1 0%;
 }
 
 .flex-initial {
   flex: 0 1 auto;
+}
+
+.flex-grow {
+  flex-grow: 1;
 }
 
 .flex-row {
@@ -594,14 +602,6 @@ video {
 
 .flex-col {
   flex-direction: column;
-}
-
-.content-center {
-  align-content: center;
-}
-
-.content-evenly {
-  align-content: space-evenly;
 }
 
 .rounded {

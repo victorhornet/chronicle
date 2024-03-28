@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Calendar from "./Calendar";
-import TaskList from "./TaskList";
-import { analyzeWeek, Event } from "../utils";
+import { useCallback, useMemo, useState } from 'react';
+import { Calendar } from './Calendar';
+import { TaskList } from '@/features/tasks';
+import { analyzeWeek, Event } from '@/utils';
 
-export default function CalAndTasks() {
+export function CalAndTasks() {
     const [draggedTask, setDraggedTask] = useState<string | null>(null);
     const [events, setEvents] = useState<Event[]>([
         {
             id: 0,
-            title: "Pacation",
+            title: 'Pacation',
             start: new Date(2024, 2, 17, 20),
             duration: { hours: 3, minutes: 59 },
             allDay: false,
@@ -16,7 +16,7 @@ export default function CalAndTasks() {
         },
         {
             id: 1,
-            title: "💤 Sleep",
+            title: '💤 Sleep',
             start: new Date(2024, 2, 18, 22),
             duration: { hours: 8 },
             allDay: false,
@@ -27,23 +27,23 @@ export default function CalAndTasks() {
                     maxDuration: { hours: 9 },
                 },
             },
-            categoryOverride: "Sleep",
-            color: "grey",
+            categoryOverride: 'Sleep',
+            color: 'grey',
         },
         {
             id: 2,
-            title: "Vacation",
+            title: 'Vacation',
             start: new Date(2024, 2, 19, 22),
             duration: { hours: 1, minutes: 59 },
             allDay: false,
             resizable: true,
-            categoryOverride: "Recovery",
-            color: "pink",
+            categoryOverride: 'Recovery',
+            color: 'pink',
         },
 
         {
             id: 3,
-            title: "Start between 07:00 and 10:00\nEnd between 12:00 and 13:00",
+            title: 'Start between 07:00 and 10:00\nEnd between 12:00 and 13:00',
             start: new Date(2024, 2, 20, 8), // Note: JavaScript months are 0-based
             duration: { hours: 1, minutes: 15 },
             allDay: false,
@@ -61,7 +61,7 @@ export default function CalAndTasks() {
         },
         {
             id: 4,
-            title: "Only monday, wednesday, friday",
+            title: 'Only monday, wednesday, friday',
             start: new Date(2024, 2, 21, 18),
             duration: { hours: 8 },
             allDay: false,
@@ -72,7 +72,7 @@ export default function CalAndTasks() {
         },
         {
             id: 5,
-            title: "Breakfast",
+            title: 'Breakfast',
             start: new Date(2024, 2, 22, 9, 30),
             duration: { minutes: 30 },
             allDay: false,
@@ -105,7 +105,7 @@ export default function CalAndTasks() {
             <div className="flex h-full flex-row">
                 <div className="flex w-1/6 flex-initial flex-col bg-slate-200">
                     <TaskList handleDragStart={handleDragStart} />
-                    <div>
+                    <div className="flex-grow">
                         <h1>Analytics</h1>
                         <table className="w-full align-middle">
                             <thead>
@@ -119,7 +119,7 @@ export default function CalAndTasks() {
                                 {analytics.categoryPercentages
                                     .sort(
                                         ([, a_perc], [, b_perc]) =>
-                                            b_perc - a_perc,
+                                            b_perc - a_perc
                                     )
                                     .map(([category, percentage]) => {
                                         return (
@@ -130,7 +130,7 @@ export default function CalAndTasks() {
                                                         analytics
                                                             .categoryMinutes[
                                                             category
-                                                        ] / 60,
+                                                        ] / 60
                                                     )}
                                                     h
                                                 </td>

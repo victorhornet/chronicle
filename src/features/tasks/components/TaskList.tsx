@@ -1,6 +1,6 @@
 export type TaskListProps = { handleDragStart: (task: string) => void };
-export default function TaskList({ handleDragStart }: TaskListProps) {
-    let tasks: string[] = ["test", "best", "jest"];
+export function TaskList({ handleDragStart }: TaskListProps) {
+    let tasks: string[] = ['test', 'best', 'jest'];
     return (
         <>
             <h1 className="text-xl font-extrabold">Tasks</h1>
