@@ -363,7 +363,7 @@ export function growEvent(event: Event, others: Event[]): Event {
 }
 
 export type Event = {
-    id: number;
+    id: string;
     title: string;
     start: Date;
     duration: Duration;

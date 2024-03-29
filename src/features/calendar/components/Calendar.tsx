@@ -22,12 +22,11 @@ import {
 } from '@/utils';
 import enUS from 'date-fns/locale/en-US';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-
+import { v4 as uuidv4 } from 'uuid';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import '../styles/Calendar.css';
 import { EventInfo } from './EventInfo';
-import { NewEventForm } from './NewEventForm';
 
 const locales = {
     'en-US': enUS,
@@ -45,6 +44,13 @@ const DnDCalendar = withDragAndDrop(RBCalendar);
 
 type RescheduleEventArgs = {
     event: Event;
+    start: Date;
+    end: Date;
+    allDay: boolean;
+};
+
+export type CreateEventArgs = {
+    title: string;
     start: Date;
     end: Date;
     allDay: boolean;
@@ -140,13 +146,11 @@ export function Calendar({
         [setEvents]
     );
     const onDelete = useCallback(() => {
-        setSelectedEvent((prev) => {
-            if (prev !== null) {
-                deleteEvent(prev);
-            }
-            return null;
-        });
-    }, [setSelectedEvent, deleteEvent]);
+        if (selectedEvent !== null) {
+            deleteEvent(selectedEvent);
+        }
+        setSelectedEvent(null);
+    }, [selectedEvent, setSelectedEvent, deleteEvent]);
 
     const handleKeybinds = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -213,16 +217,26 @@ export function Calendar({
         [updateEvent, scheduleFlexibleEvent, setSelectedEvent]
     );
 
+    const scheduleDraggedTask = useCallback(
+        ({ start, end, allDay }: CreateEventArgs) => {
+            if (draggedTask !== null) {
+                createEvent({ title: draggedTask, start, end, allDay });
+                resetDraggedTask();
+            }
+        },
+        [draggedTask, resetDraggedTask]
+    );
     const createEvent = useCallback(
-        ({ start, end, allDay }: RescheduleEventArgs) => {
+        ({ title, start, end, allDay }: CreateEventArgs) => {
+            let selected = null;
             setEvents((prev) => {
-                const eventName = draggedTask ?? newEventPopup();
+                const eventName = title;
                 if (eventName === null || eventName === '') {
                     return prev;
                 }
                 const duration = intervalToDuration(interval(start, end));
                 const result = scheduleFlexibleEvent({
-                    id: prev.length,
+                    id: uuidv4(),
                     title: eventName,
                     resizable: true,
                     allDay: allDay ?? false,
@@ -232,14 +246,14 @@ export function Calendar({
                 if (!result.scheduleSuccess) {
                     return prev;
                 }
-                if (draggedTask !== null) {
-                    resetDraggedTask();
-                }
-                setSelectedEvent(result.event);
+                selected = result.event;
                 return [...prev, result.event];
             });
+            if (selected !== null) {
+                setSelectedEvent(selected);
+            }
         },
-        [draggedTask, setEvents, scheduleFlexibleEvent, setSelectedEvent]
+        [events, setEvents, scheduleFlexibleEvent, setSelectedEvent]
     );
 
     return (
@@ -277,7 +291,7 @@ export function Calendar({
                     //@ts-ignore
                     onEventResize={manuallyScheduleEvent}
                     //@ts-ignore
-                    onDropFromOutside={createEvent}
+                    onDropFromOutside={scheduleDraggedTask}
                     //@ts-ignore
                     onSelectSlot={createEvent}
                     resizable
@@ -291,18 +305,8 @@ export function Calendar({
                 />
             </div>
             <div className="w-1/6 flex-initial">
-                <NewEventForm
-                    onSubmit={(name, start, end, allDay) => {
-                        console.log(name, start, end, allDay);
-                    }}
-                />
-                <EventInfo event={selectedEvent} />
+                <EventInfo event={selectedEvent} updateEvent={updateEvent} />
             </div>
         </div>
     );
-}
-
-//todo prompt is not supported by tauri, have an actual pop up
-function newEventPopup() {
-    return prompt('Event name:', 'Unnamed Event');
 }
