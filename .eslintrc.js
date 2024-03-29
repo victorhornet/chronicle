@@ -9,4 +9,6 @@ export default {
 
         // ...rest of the configuration
     },
+
+    extends: ['plugin:storybook/recommended']
 };
