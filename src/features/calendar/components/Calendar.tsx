@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Calendar as RBCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import {
     format,
@@ -26,7 +26,8 @@ import { v4 as uuidv4 } from 'uuid';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import '../styles/Calendar.css';
-import { EventInfo } from './EventInfo';
+import { EventInfo, UpdateEventFormInputs } from './EventInfo';
+import { useForm } from 'react-hook-form';
 
 const locales = {
     'en-US': enUS,
@@ -68,6 +69,7 @@ export function Calendar({
     events,
     setEvents,
 }: MyCalendarProps) {
+    const updateEventForm = useForm<UpdateEventFormInputs>();
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [timeSlots] = useState<TimeSlot[]>([
         {
@@ -230,14 +232,15 @@ export function Calendar({
         ({ title, start, end, allDay }: CreateEventArgs) => {
             let selected = null;
             setEvents((prev) => {
-                const eventName = title;
-                if (eventName === null || eventName === '') {
-                    return prev;
-                }
+                // const eventName = title;
+                // console.log(eventName);
+                // if (eventName === null || eventName === '') {
+                //     return prev;
+                // }
                 const duration = intervalToDuration(interval(start, end));
                 const result = scheduleFlexibleEvent({
                     id: uuidv4(),
-                    title: eventName,
+                    title,
                     resizable: true,
                     allDay: allDay ?? false,
                     start,
@@ -251,9 +254,19 @@ export function Calendar({
             });
             if (selected !== null) {
                 setSelectedEvent(selected);
+                return true;
             }
+            return false;
         },
         [events, setEvents, scheduleFlexibleEvent, setSelectedEvent]
+    );
+
+    const onSelectSlots = useCallback(
+        (ev: CreateEventArgs) => {
+            createEvent(ev);
+            updateEventForm.setFocus('title');
+        },
+        [createEvent, updateEventForm]
     );
 
     return (
@@ -293,7 +306,7 @@ export function Calendar({
                     //@ts-ignore
                     onDropFromOutside={scheduleDraggedTask}
                     //@ts-ignore
-                    onSelectSlot={createEvent}
+                    onSelectSlot={onSelectSlots}
                     resizable
                     selectable
                     resizableAccessor={() => true}
@@ -305,7 +318,11 @@ export function Calendar({
                 />
             </div>
             <div className="w-1/6 flex-initial">
-                <EventInfo event={selectedEvent} updateEvent={updateEvent} />
+                <EventInfo
+                    event={selectedEvent}
+                    updateEvent={updateEvent}
+                    useFormReturn={updateEventForm}
+                />
             </div>
         </div>
     );

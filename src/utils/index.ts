@@ -426,7 +426,9 @@ export function checkConstraints(
     const start = event.start;
     const end = getEnd(event);
     if (event.schedulingConstraints === undefined) {
-        return { event, scheduleSuccess: true };
+        return milliseconds(event.duration) > 0
+            ? { event, scheduleSuccess: true }
+            : { scheduleSuccess: false };
     }
     const constraints = event.schedulingConstraints;
     if (constraints.durationConstraint !== undefined) {

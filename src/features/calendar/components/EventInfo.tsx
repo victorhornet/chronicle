@@ -1,19 +1,28 @@
 import { DEFAULT_CATEGORY, Event, getEnd } from '@/utils';
 import { useCallback, useEffect } from 'react';
 import { CreateEventArgs } from '@/features/calendar';
-import { useForm } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 
 type EventInfoProps = {
     event: Event | null;
     updateEvent: (event: Event) => void;
+    useFormReturn: UseFormReturn<UpdateEventFormInputs>;
 };
-export function EventInfo({ event, updateEvent }: EventInfoProps) {
+export function EventInfo({
+    event,
+    updateEvent,
+    useFormReturn,
+}: EventInfoProps) {
     return (
         <div className="p-3 text-center">
             {event === null ? (
                 <EmptyEventInfo />
             ) : (
-                <UpdateEventForm event={event} updateEvent={updateEvent} />
+                <UpdateEventForm
+                    event={event}
+                    updateEvent={updateEvent}
+                    useFormReturn={useFormReturn}
+                />
             )}
         </div>
     );
@@ -23,14 +32,19 @@ function EmptyEventInfo() {
     return <h1>Select an event</h1>;
 }
 
-type UpdateEventFormInputs = CreateEventArgs & {
+export type UpdateEventFormInputs = CreateEventArgs & {
     category: string;
 };
 type UpdateEventFormProps = {
     event: Event;
     updateEvent: (event: Event) => void;
+    useFormReturn: UseFormReturn<UpdateEventFormInputs>;
 };
-function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
+function UpdateEventForm({
+    event,
+    updateEvent,
+    useFormReturn,
+}: UpdateEventFormProps) {
     const saveFormChanges = useCallback(
         ({ title, category }: UpdateEventFormInputs) => {
             if (event === null) {
@@ -54,7 +68,7 @@ function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
         handleSubmit,
         setValue,
         formState: { errors },
-    } = useForm<UpdateEventFormInputs>();
+    } = useFormReturn;
 
     useEffect(() => {
         if (event !== null) {

@@ -616,14 +616,6 @@ video {
   flex-direction: column;
 }
 
-.content-center {
-  align-content: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
 .rounded {
   border-radius: 0.25rem;
 }
