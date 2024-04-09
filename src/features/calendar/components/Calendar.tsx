@@ -69,7 +69,7 @@ export function Calendar({
     setEvents,
 }: MyCalendarProps) {
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
+    const [timeSlots] = useState<TimeSlot[]>([
         {
             id: 0,
             title: 'Work timeslot',
@@ -257,12 +257,12 @@ export function Calendar({
     );
 
     return (
-        <div
-            className="flex h-full flex-grow flex-row"
-            onKeyDown={handleKeybinds}
-            tabIndex={0}
-        >
-            <div className="flex-1 flex-grow">
+        <div className="flex h-full flex-grow flex-row">
+            <div
+                className="flex-1 flex-grow"
+                onKeyDown={handleKeybinds}
+                tabIndex={0}
+            >
                 <DnDCalendar
                     eventPropGetter={(ev) => {
                         //@ts-ignore

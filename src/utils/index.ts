@@ -362,6 +362,7 @@ export function growEvent(event: Event, others: Event[]): Event {
     return newEvent;
 }
 
+export const DEFAULT_CATEGORY = 'Default' as const;
 export type Event = {
     id: string;
     title: string;
@@ -640,7 +641,7 @@ export function extractCategoryHours(events: Event[]): {
         [key: string]: number;
     } = {};
     events.forEach((event) => {
-        const category = event.categoryOverride ?? 'Default';
+        const category = event.categoryOverride ?? DEFAULT_CATEGORY;
         if (categories[category] === undefined) {
             categories[category] = 0;
         }

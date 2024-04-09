@@ -1,4 +1,4 @@
-import { Event, getEnd } from '@/utils';
+import { DEFAULT_CATEGORY, Event, getEnd } from '@/utils';
 import { useCallback, useEffect } from 'react';
 import { CreateEventArgs } from '@/features/calendar';
 import { useForm } from 'react-hook-form';
@@ -23,13 +23,16 @@ function EmptyEventInfo() {
     return <h1>Select an event</h1>;
 }
 
+type UpdateEventFormInputs = CreateEventArgs & {
+    category: string;
+};
 type UpdateEventFormProps = {
     event: Event;
     updateEvent: (event: Event) => void;
 };
 function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
     const saveFormChanges = useCallback(
-        ({ title }: CreateEventArgs) => {
+        ({ title, category }: UpdateEventFormInputs) => {
             if (event === null) {
                 return;
             }
@@ -40,6 +43,7 @@ function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
             updateEvent({
                 ...event,
                 title,
+                categoryOverride: category,
             });
         },
         [event, updateEvent]
@@ -50,7 +54,7 @@ function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
         handleSubmit,
         setValue,
         formState: { errors },
-    } = useForm<CreateEventArgs>();
+    } = useForm<UpdateEventFormInputs>();
 
     useEffect(() => {
         if (event !== null) {
@@ -58,6 +62,7 @@ function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
             setValue('start', event.start);
             setValue('end', getEnd(event));
             setValue('allDay', event.allDay ?? false);
+            setValue('category', event.categoryOverride ?? DEFAULT_CATEGORY);
         }
     }, [event]);
 
@@ -81,8 +86,11 @@ function UpdateEventForm({ event, updateEvent }: UpdateEventFormProps) {
                     : ''}
                 )
             </p>
+            <p>
+                Category: <input {...register('category')} />
+            </p>
             {errors.start && errors.end && <span>This field is required</span>}
-            <input type="submit" value="Update" />
+            <input hidden type="submit" value="Update" />
         </form>
     );
 }

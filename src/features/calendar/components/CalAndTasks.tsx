@@ -2,12 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { Calendar } from './Calendar';
 import { TaskList } from '@/features/tasks';
 import { analyzeWeek, Event } from '@/utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export function CalAndTasks() {
     const [draggedTask, setDraggedTask] = useState<string | null>(null);
     const [events, setEvents] = useState<Event[]>([
         {
-            id: 0,
+            id: uuidv4(),
             title: 'Pacation',
             start: new Date(2024, 2, 17, 20),
             duration: { hours: 3, minutes: 59 },
@@ -15,7 +16,7 @@ export function CalAndTasks() {
             resizable: true,
         },
         {
-            id: 1,
+            id: uuidv4(),
             title: '💤 Sleep',
             start: new Date(2024, 2, 18, 22),
             duration: { hours: 8 },
@@ -31,7 +32,7 @@ export function CalAndTasks() {
             color: 'grey',
         },
         {
-            id: 2,
+            id: uuidv4(),
             title: 'Vacation',
             start: new Date(2024, 2, 19, 22),
             duration: { hours: 1, minutes: 59 },
@@ -42,7 +43,7 @@ export function CalAndTasks() {
         },
 
         {
-            id: 3,
+            id: uuidv4(),
             title: 'Start between 07:00 and 10:00\nEnd between 12:00 and 13:00',
             start: new Date(2024, 2, 20, 8), // Note: JavaScript months are 0-based
             duration: { hours: 1, minutes: 15 },
@@ -60,7 +61,7 @@ export function CalAndTasks() {
             },
         },
         {
-            id: 4,
+            id: uuidv4(),
             title: 'Only monday, wednesday, friday',
             start: new Date(2024, 2, 21, 18),
             duration: { hours: 8 },
@@ -71,7 +72,7 @@ export function CalAndTasks() {
             },
         },
         {
-            id: 5,
+            id: uuidv4(),
             title: 'Breakfast',
             start: new Date(2024, 2, 22, 9, 30),
             duration: { minutes: 30 },
@@ -105,44 +106,7 @@ export function CalAndTasks() {
             <div className="flex h-full flex-row">
                 <div className="flex w-1/6 flex-initial flex-col bg-slate-200">
                     <TaskList handleDragStart={handleDragStart} />
-                    <div className="flex-grow">
-                        <h1>Analytics</h1>
-                        <table className="w-full align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <td>Hours</td>
-                                    <td>% of week</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {analytics.categoryPercentages
-                                    .sort(
-                                        ([, a_perc], [, b_perc]) =>
-                                            b_perc - a_perc
-                                    )
-                                    .map(([category, percentage]) => {
-                                        return (
-                                            <tr key={category}>
-                                                <th>{category}</th>
-                                                <td>
-                                                    {Math.floor(
-                                                        analytics
-                                                            .categoryMinutes[
-                                                            category
-                                                        ] / 60
-                                                    )}
-                                                    h
-                                                </td>
-                                                <td>
-                                                    {Math.floor(percentage)}%
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                            </tbody>
-                        </table>
-                    </div>
+                    <Analytics analytics={analytics} />
                 </div>
                 <Calendar
                     draggedTask={draggedTask}
@@ -152,5 +116,52 @@ export function CalAndTasks() {
                 />
             </div>
         </>
+    );
+}
+
+function Analytics({
+    analytics,
+}: {
+    analytics: {
+        totalMinutes: number;
+        categoryMinutes: {
+            [key: string]: number;
+        };
+        categoryPercentages: [string, number][];
+    };
+}) {
+    return (
+        <div className="flex-grow">
+            <h1>Analytics</h1>
+            <table className="w-full align-middle">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <td>Hours</td>
+                        <td>% of week</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {analytics.categoryPercentages
+                        .sort(([, a_perc], [, b_perc]) => b_perc - a_perc)
+                        .map(([category, percentage]) => {
+                            return (
+                                <tr key={category}>
+                                    <th>{category}</th>
+                                    <td>
+                                        {Math.floor(
+                                            analytics.categoryMinutes[
+                                                category
+                                            ] / 60
+                                        )}
+                                        h
+                                    </td>
+                                    <td>{Math.floor(percentage)}%</td>
+                                </tr>
+                            );
+                        })}
+                </tbody>
+            </table>
+        </div>
     );
 }
