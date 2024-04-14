@@ -22,6 +22,7 @@
     "react-big-calendar": "^1.11.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.2",
+    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
