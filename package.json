@@ -12,8 +12,9 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.0-beta.0",
+    "@tauri-apps/api": "2.0.0-beta.7",
     "@tauri-apps/plugin-shell": "^2.0.0-beta.0",
+    "@tauri-apps/plugin-sql": "github:tauri-apps/tauri-plugin-sql#v2",
     "@types/react-big-calendar": "^1.8.9",
     "@types/uuid": "^9.0.8",
     "date-fns": "^3.3.1",
@@ -35,7 +36,7 @@
     "@storybook/react": "^8.0.5",
     "@storybook/react-vite": "^8.0.5",
     "@storybook/test": "^8.0.5",
-    "@tauri-apps/cli": "^2.0.0-beta.0",
+    "@tauri-apps/cli": "2.0.0-beta.12",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",

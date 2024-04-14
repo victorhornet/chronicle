@@ -1,7 +1,7 @@
 [package]
 name = "vectors-chronicle"
 version = "0.1.0"
-description = "A calendar app."
+description = "The flexible time blocking app."
 authors = ["Victor Hornet"]
 edition = "2021"
 
@@ -17,7 +17,7 @@ tauri-build = { version = "2.0.0-beta", features = [] }
 [dependencies]
 tauri = { version = "2.0.0-beta", features = [] }
 tauri-plugin-shell = "2.0.0-beta"
-tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1", features = [
+tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2", features = [
     "sqlite",
 ] }
 serde_json = "1.0"

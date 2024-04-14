@@ -1,6 +1,6 @@
 {
     "productName": "Vector's Chronicle",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "identifier": "dev.victorhornet.chronicle",
     "build": {
         "beforeDevCommand": "pnpm dev",
@@ -14,7 +14,7 @@
                 "title": "Vector's Chronicle",
                 "width": 1820,
                 "height": 1024,
-                "fileDropEnabled": false
+                "dragDropEnabled": false
             }
         ],
         "security": {
