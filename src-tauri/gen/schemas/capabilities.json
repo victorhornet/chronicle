@@ -1,1 +1,1 @@
-{}
+{"sql-capability":{"identifier":"sql-capability","description":"Capability for the main window, sql","local":true,"windows":["main"],"permissions":["sql:allow-load","sql:allow-execute","sql:allow-select","sql:allow-close"]}}

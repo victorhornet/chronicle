@@ -1,4 +1,4 @@
-import Database from 'tauri-plugin-sql-api';
+import Database from '@tauri-apps/plugin-sql';
 import { EventSchema, EventSchemaNoId } from '../types/db';
 
 /**
@@ -13,15 +13,14 @@ export async function connect() {
  * Inserts a new event to the database.
  */
 export async function create_event(conn: Database, event: EventSchemaNoId) {
-    return await conn.execute('INSERT INTO events VALUES ($1, $2, $3);', [
-        event.summary,
-        event.start,
-        event.duration,
-    ]);
+    return await conn.execute(
+        'INSERT INTO events (summary, start, duration) VALUES ($1, $2, $3);',
+        [event.summary, event.start, event.duration]
+    );
 }
 
 export async function read_all_events(conn: Database) {
-    return await conn.execute('SELECT * FROM events;');
+    return await conn.select('SELECT * FROM events');
 }
 
 export async function read_events_range(
@@ -29,7 +28,7 @@ export async function read_events_range(
     after: Date,
     before: Date
 ) {
-    return await conn.execute(
+    return await conn.select(
         'SELECT * FROM events WHERE $1 < start AND start < $2;',
         [after, before]
     );

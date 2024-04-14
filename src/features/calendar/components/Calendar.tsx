@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Calendar as RBCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import {
     format,

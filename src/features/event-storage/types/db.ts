@@ -1,11 +1,11 @@
 import { Duration } from 'date-fns';
 
 export type EventSchema = {
-    id: string; // uuidv4
+    id: number; // sequence
 } & EventSchemaNoId;
 
 export type EventSchemaNoId = {
-    summary: string; // varchar(256)
+    summary: string; // text
     start: Date; // datetime
     duration: Duration; // time
 };
