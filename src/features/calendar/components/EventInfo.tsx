@@ -2,6 +2,7 @@ import { DEFAULT_CATEGORY, Event, getEnd } from '@/utils';
 import { useCallback, useEffect } from 'react';
 import { CreateEventArgs } from '@/features/calendar';
 import { UseFormReturn } from 'react-hook-form';
+import { formatDuration } from 'date-fns';
 
 type EventInfoProps = {
     event: Event | null;
@@ -91,15 +92,9 @@ function UpdateEventForm({
             <p>
                 {event.start.getHours()}:{event.start.getMinutes()}
                 {' -> '}
-                {event_end.getHours()}:{event_end.getMinutes()} (
-                {event.duration.hours !== undefined
-                    ? `${event.duration.hours}h `
-                    : ''}
-                {event.duration.minutes !== undefined
-                    ? `${event.duration.minutes}min`
-                    : ''}
-                )
+                {event_end.getHours()}:{event_end.getMinutes()}
             </p>
+            <p>({formatDuration(event.duration)})</p>
             <p>
                 Category: <input {...register('category')} />
             </p>

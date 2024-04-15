@@ -6,10 +6,10 @@ plugins {
 
 android {
     compileSdk = 33
-    namespace = "com.tauri.vectors_chronicle"
+    namespace = "dev.victorhornet.vectors_chronicle"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.tauri.vectors_chronicle"
+        applicationId = "dev.victorhornet.vectors_chronicle"
         minSdk = 24
         targetSdk = 33
         versionCode = 1

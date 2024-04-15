@@ -1,5 +1,5 @@
 {
-    "productName": "Vector's Chronicle",
+    "productName": "Chronicle",
     "version": "0.1.0",
     "identifier": "dev.victorhornet.chronicle",
     "build": {
@@ -11,7 +11,7 @@
     "app": {
         "windows": [
             {
-                "title": "Vector's Chronicle",
+                "title": "Chronicle",
                 "width": 1820,
                 "height": 1024,
                 "dragDropEnabled": false

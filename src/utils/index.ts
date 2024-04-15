@@ -685,7 +685,9 @@ export function analyzeWeek(
     const totalMinutes = MINUTES_IN_DAY * 7;
     const categoryPercentages: [string, number][] = Object.entries(
         categoryMinutes
-    ).map(([category, minutes]) => [category, (minutes / totalMinutes) * 100]);
+    ).map(([category, minutes]) => {
+        return [category, (minutes / totalMinutes) * 100];
+    });
     return { totalMinutes, categoryMinutes, categoryPercentages };
 }
 
