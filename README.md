@@ -1,7 +1,9 @@
-# Tauri + React + Typescript
+# Chronicle (Community Edition)
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Chronicle is a flexible time blocker.
 
-## Recommended IDE Setup
+## License
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+The Community Edition of Chronicle is distributed under the MIT or Apache-2.0 licenses.
+
+`SPDX-License-Identifier: Apache-2.0 OR MIT`
