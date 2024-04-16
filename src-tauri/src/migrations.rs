@@ -19,6 +19,12 @@ pub fn migrations() -> Vec<Migration> {
             description: "insert_demo_event",
             sql: "INSERT INTO events (summary, start, duration) VALUES (\"test\", datetime(), time());",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 4,
+            description: "insert_demo_categories",
+            sql: "INSERT INTO categories (title, color) VALUES (\"Work\", \"#FF0000\"), (\"Default\", \"#0000FF\");",
+            kind: MigrationKind::Up,
         }
     ]
 }

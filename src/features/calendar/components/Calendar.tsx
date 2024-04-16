@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { Calendar as RBCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import {
     format,
@@ -19,6 +19,7 @@ import {
     TimeSlot,
     WORKDAYS,
     WEEKDAYS,
+    DEFAULT_CATEGORY,
 } from '@/utils';
 import enUS from 'date-fns/locale/en-US';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
@@ -28,6 +29,7 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import '../styles/Calendar.css';
 import { EventInfo, UpdateEventFormInputs } from './EventInfo';
 import { useForm } from 'react-hook-form';
+import { CategoryContext } from '@/stores/CategoryContext';
 
 const locales = {
     'en-US': enUS,
@@ -69,6 +71,7 @@ export function Calendar({
     events,
     setEvents,
 }: MyCalendarProps) {
+    const categories = useContext(CategoryContext);
     const updateEventForm = useForm<UpdateEventFormInputs>();
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [timeSlots] = useState<TimeSlot[]>([
@@ -274,10 +277,14 @@ export function Calendar({
                 <DnDCalendar
                     eventPropGetter={(ev) => {
                         //@ts-ignore
-                        const event: Event | TimeSlot = ev;
+                        const event: Event = ev;
+                        const category =
+                            event.categoryOverride ?? DEFAULT_CATEGORY;
                         return {
                             style: {
-                                backgroundColor: event.color ?? 'blue',
+                                backgroundColor:
+                                    categories[category] ??
+                                    categories[DEFAULT_CATEGORY],
                             },
                         };
                     }}

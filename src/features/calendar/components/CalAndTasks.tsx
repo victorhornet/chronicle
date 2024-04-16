@@ -11,6 +11,7 @@ import {
     intervalToDuration,
     minutesToMilliseconds,
 } from 'date-fns';
+import { CategoryList } from '@/features/category-list/components/CategoryList';
 
 export function CalAndTasks() {
     const [draggedTask, setDraggedTask] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function CalAndTasks() {
                         analytics={analytics}
                         unscheduledTime={unscheduledTime}
                     />
+                    <CategoryList />
                 </div>
                 <Calendar
                     draggedTask={draggedTask}
@@ -81,7 +83,7 @@ function Analytics({
 }) {
     return (
         <div className="flex-grow">
-            <h1>Analytics</h1>
+            <h1 className="text-xl font-extrabold">Analytics</h1>
             <h1>
                 {formatDuration(unscheduledTime, {
                     format: ['weeks', 'days', 'hours'],
