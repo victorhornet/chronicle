@@ -4,7 +4,7 @@ import { TaskList } from '@/features/tasks';
 import { analyzeWeek, Event } from '@/utils';
 
 import { eventStorage } from '@/features/event-storage';
-import DatabaseContext from '@/stores/DatabaseContext';
+import { DatabaseContext } from '@/stores/DatabaseContext';
 import {
     Duration,
     formatDuration,

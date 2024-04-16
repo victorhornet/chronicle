@@ -232,11 +232,6 @@ export function Calendar({
         ({ title, start, end, allDay }: CreateEventArgs) => {
             let selected = null;
             setEvents((prev) => {
-                // const eventName = title;
-                // console.log(eventName);
-                // if (eventName === null || eventName === '') {
-                //     return prev;
-                // }
                 const duration = intervalToDuration(interval(start, end));
                 const result = scheduleFlexibleEvent({
                     id: uuidv4(),
