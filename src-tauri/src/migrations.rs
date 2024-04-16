@@ -25,6 +25,12 @@ pub fn migrations() -> Vec<Migration> {
             description: "insert_demo_categories",
             sql: "INSERT INTO categories (title, color) VALUES (\"Work\", \"#FF0000\"), (\"Default\", \"#0000FF\");",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 5,
+            description: "insert_more_demo_categories",
+            sql: "INSERT INTO categories (title, color) VALUES (\"Recovery\", \"#03fc52\"), (\"Study\", \"#fcba03\"), (\"Social\", \"#e52ce8\"), (\"Filler\",\"#4f4f4f\");",
+            kind: MigrationKind::Up
         }
     ]
 }
