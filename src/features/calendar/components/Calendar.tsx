@@ -29,7 +29,8 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import '../styles/Calendar.css';
 import { EventInfo, UpdateEventFormInputs } from './EventInfo';
 import { useForm } from 'react-hook-form';
-import { CategoryContext } from '@/stores/CategoryContext';
+import { CategoryContext } from '@/features/category-list/stores/CategoryContext';
+import { InfoPanel } from '@/components/Layout';
 
 const locales = {
     'en-US': enUS,
@@ -60,17 +61,10 @@ export type CreateEventArgs = {
 };
 
 export type MyCalendarProps = {
-    draggedTask: string | null;
-    resetDraggedTask: () => void;
     events: Event[];
     setEvents: React.Dispatch<React.SetStateAction<Event[]>>;
 };
-export function Calendar({
-    draggedTask,
-    resetDraggedTask,
-    events,
-    setEvents,
-}: MyCalendarProps) {
+export function Calendar({ events, setEvents }: MyCalendarProps) {
     const categories = useContext(CategoryContext);
     const updateEventForm = useForm<UpdateEventFormInputs>();
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -222,15 +216,6 @@ export function Calendar({
         [updateEvent, scheduleFlexibleEvent, setSelectedEvent]
     );
 
-    const scheduleDraggedTask = useCallback(
-        ({ start, end, allDay }: CreateEventArgs) => {
-            if (draggedTask !== null) {
-                createEvent({ title: draggedTask, start, end, allDay });
-                resetDraggedTask();
-            }
-        },
-        [draggedTask, resetDraggedTask]
-    );
     const createEvent = useCallback(
         ({ title, start, end, allDay }: CreateEventArgs) => {
             let selected = null;
@@ -268,7 +253,7 @@ export function Calendar({
     );
 
     return (
-        <div className="flex h-full flex-grow flex-row">
+        <>
             <div
                 className="flex-1 flex-grow"
                 onKeyDown={handleKeybinds}
@@ -306,8 +291,6 @@ export function Calendar({
                     //@ts-ignore
                     onEventResize={manuallyScheduleEvent}
                     //@ts-ignore
-                    onDropFromOutside={scheduleDraggedTask}
-                    //@ts-ignore
                     onSelectSlot={onSelectSlots}
                     resizable
                     selectable
@@ -319,13 +302,13 @@ export function Calendar({
                     onSelectEvent={(ev) => setSelectedEvent(ev)}
                 />
             </div>
-            <div className="w-1/6 flex-initial">
+            <InfoPanel>
                 <EventInfo
                     event={selectedEvent}
                     updateEvent={updateEvent}
                     useFormReturn={updateEventForm}
                 />
-            </div>
-        </div>
+            </InfoPanel>
+        </>
     );
 }

@@ -6,7 +6,7 @@ import {
     useEffect,
     useState,
 } from 'react';
-import { DatabaseContext } from './DatabaseContext';
+import { DatabaseContext } from '@/features/database-connection';
 
 type CategoryColorMap = { [key: string]: string };
 export const CategoryContext = createContext<CategoryColorMap>({});

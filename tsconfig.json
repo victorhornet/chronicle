@@ -30,7 +30,8 @@
         }
     },
     "include": [
-        "src"
+        "src",
+        "src/components/InfoPanel/.tsx"
     ],
     "references": [
         {
