@@ -1,4 +1,4 @@
-import { db } from '@/features/event-storage';
+import { db } from '@/features/database-connection';
 import Database from '@tauri-apps/plugin-sql';
 import { PropsWithChildren, createContext, useEffect, useState } from 'react';
 

@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { SchemaCategory } from '../types/schema';
-import { CategoryContext } from '@/stores/CategoryContext';
+import { CategoryContext } from '@/features/category-list/stores/CategoryContext';
 
 export type CategoryListProps = {};
 export function CategoryList({}: CategoryListProps) {
