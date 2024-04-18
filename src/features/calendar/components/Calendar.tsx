@@ -138,8 +138,11 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
                 ...prev.filter((ev) => ev.id !== event.id),
                 event,
             ]);
+            if (conn !== null) {
+                eventStorage.update_event(conn, event);
+            }
         },
-        [setEvents]
+        [conn, setEvents]
     );
     const onDelete = useCallback(() => {
         if (selectedEvent !== null) {
