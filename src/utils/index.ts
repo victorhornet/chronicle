@@ -363,8 +363,7 @@ export function growEvent(event: Event, others: Event[]): Event {
 }
 
 export const DEFAULT_CATEGORY = 'Default' as const;
-export type Event = {
-    id: string;
+export type EventNoId = {
     title: string;
     start: Date;
     duration: Duration;
@@ -376,6 +375,7 @@ export type Event = {
     categoryOverride?: string;
     // end: Date;
 };
+export type Event = EventNoId & { id: string };
 
 export type TimeSlot = {
     id: number;

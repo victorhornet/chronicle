@@ -9,13 +9,8 @@ import {
     intervalToDuration,
 } from 'date-fns';
 import {
-    Collision,
-    durationBetween,
-    findCollisions,
-    subDurs,
     Event,
     getEnd,
-    checkConstraints,
     TimeSlot,
     WORKDAYS,
     WEEKDAYS,
@@ -23,7 +18,6 @@ import {
 } from '@/utils';
 import enUS from 'date-fns/locale/en-US';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-import { v4 as uuidv4 } from 'uuid';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import '../styles/Calendar.css';
@@ -31,6 +25,9 @@ import { EventInfo, UpdateEventFormInputs } from './EventInfo';
 import { useForm } from 'react-hook-form';
 import { CategoryContext } from '@/features/category-list/stores/CategoryContext';
 import { InfoPanel } from '@/components/Layout';
+import { scheduleFlexibleEvent } from '../utils/scheduling';
+import { DatabaseContext } from '@/features/database-connection';
+import { eventStorage } from '@/features/event-storage';
 
 const locales = {
     'en-US': enUS,
@@ -58,6 +55,7 @@ export type CreateEventArgs = {
     start: Date;
     end: Date;
     allDay: boolean;
+    categoryOverride?: string;
 };
 
 export type MyCalendarProps = {
@@ -66,6 +64,7 @@ export type MyCalendarProps = {
 };
 export function Calendar({ events, setEvents }: MyCalendarProps) {
     const categories = useContext(CategoryContext);
+    const conn = useContext(DatabaseContext);
     const updateEventForm = useForm<UpdateEventFormInputs>();
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [timeSlots] = useState<TimeSlot[]>([
@@ -125,15 +124,14 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
         },
     ]);
 
-    const checkCollisions = useCallback(
-        (event: Event): (Collision | null)[] => findCollisions(event, events),
-        [events]
-    );
     const deleteEvent = useCallback(
         (event: Event) => {
             setEvents((prev) => prev.filter((ev) => ev.id !== event.id));
+            if (conn !== null) {
+                eventStorage.delete_event(conn, event);
+            }
         },
-        [setEvents]
+        [conn, setEvents]
     );
     const updateEvent = useCallback(
         (event: Event) => {
@@ -141,9 +139,13 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
                 ...prev.filter((ev) => ev.id !== event.id),
                 event,
             ]);
+            if (conn !== null) {
+                eventStorage.update_event(conn, event);
+            }
         },
-        [setEvents]
+        [conn, setEvents]
     );
+
     const onDelete = useCallback(() => {
         if (selectedEvent !== null) {
             deleteEvent(selectedEvent);
@@ -151,98 +153,80 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
         setSelectedEvent(null);
     }, [selectedEvent, setSelectedEvent, deleteEvent]);
 
-    const handleKeybinds = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            console.log(event.key);
-            if (event.key === 'Backspace') {
-                onDelete();
-            }
-        },
-        [onDelete]
-    );
-
-    const scheduleFlexibleEvent = useCallback(
-        (event: Event) => {
-            let rescheduledEvent = { ...event };
-            checkCollisions(event).forEach((col) => {
-                switch (col?.colType) {
-                    case 'startCollides':
-                        rescheduledEvent = {
-                            ...rescheduledEvent,
-                            start: col.otherEnd,
-                            duration: subDurs(
-                                rescheduledEvent.duration,
-                                durationBetween(
-                                    rescheduledEvent.start,
-                                    col.otherEnd
-                                )
-                            ),
-                        };
-                        break;
-                    case 'endCollides':
-                        rescheduledEvent = {
-                            ...rescheduledEvent,
-                            duration: durationBetween(
-                                rescheduledEvent.start,
-                                col.otherStart
-                            ),
-                        };
-                        break;
-                    default:
-                        break;
-                }
-            });
-
-            return checkConstraints(rescheduledEvent);
-        },
-        [events, checkCollisions]
-    );
-
-    const manuallyScheduleEvent = useCallback(
+    const rescheduleExistingEvent = useCallback(
         ({ event, start, end, allDay }: RescheduleEventArgs) => {
             const duration = intervalToDuration(interval(start, end));
-            const result = scheduleFlexibleEvent({
-                ...event,
-                allDay,
-                start,
-                duration,
-            });
+            const result = scheduleFlexibleEvent(
+                {
+                    ...event,
+                    allDay,
+                    start,
+                    duration,
+                },
+                events
+            );
+            console.log(events);
+
             if (!result.scheduleSuccess) {
                 return;
             }
             updateEvent(result.event);
             setSelectedEvent(result.event);
         },
-        [updateEvent, scheduleFlexibleEvent, setSelectedEvent]
+        [events, updateEvent, setSelectedEvent]
     );
 
     const createEvent = useCallback(
-        ({ title, start, end, allDay }: CreateEventArgs) => {
-            let selected = null;
-            setEvents((prev) => {
-                const duration = intervalToDuration(interval(start, end));
-                const result = scheduleFlexibleEvent({
-                    id: uuidv4(),
+        async ({
+            title,
+            start,
+            end,
+            allDay,
+            categoryOverride,
+        }: CreateEventArgs) => {
+            const duration = intervalToDuration(interval(start, end));
+            const result = scheduleFlexibleEvent(
+                {
                     title,
                     resizable: true,
                     allDay: allDay ?? false,
                     start,
                     duration,
-                });
-                if (!result.scheduleSuccess) {
-                    return prev;
-                }
-                selected = result.event;
-                return [...prev, result.event];
-            });
-            if (selected !== null) {
-                setSelectedEvent(selected);
-                return true;
+                    categoryOverride,
+                },
+                events
+            );
+            if (!result.scheduleSuccess || conn === null) {
+                return false;
             }
-            return false;
+            const queryResult = await eventStorage.create_event(
+                conn,
+                result.event
+            );
+            console.log(queryResult);
+            const newEventId = queryResult.id.toString();
+            const newEvent = { ...result.event, id: newEventId };
+            setEvents((prev) => [...prev, newEvent]);
+            setSelectedEvent(newEvent);
+            return true;
         },
-        [events, setEvents, scheduleFlexibleEvent, setSelectedEvent]
+        [events, conn, setEvents, setSelectedEvent]
     );
+    const cloneEvent = useCallback(
+        async (event: Event) => {
+            if (conn !== null) {
+                const newEvent = await eventStorage.create_event(conn, event);
+                setEvents((prev) => [...prev, newEvent]);
+                setSelectedEvent(newEvent);
+            }
+        },
+        [conn, setEvents, setSelectedEvent]
+    );
+    const cloneSelectedEvent = useCallback(() => {
+        if (selectedEvent !== null) {
+            cloneEvent(selectedEvent);
+        }
+    }, [selectedEvent, cloneEvent]);
 
     const onSelectSlots = useCallback(
         (ev: CreateEventArgs) => {
@@ -250,6 +234,19 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
             updateEventForm.setFocus('title');
         },
         [createEvent, updateEventForm]
+    );
+
+    const handleKeybinds = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            console.log(event.key);
+            if (event.key === 'Backspace') {
+                onDelete();
+            }
+            if (event.key.toLowerCase() === 'd') {
+                cloneSelectedEvent();
+            }
+        },
+        [onDelete, cloneSelectedEvent]
     );
 
     return (
@@ -287,9 +284,9 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
                     //@ts-ignore
                     allDayAccessor={(e) => e.allDay}
                     //@ts-ignore
-                    onEventDrop={manuallyScheduleEvent}
+                    onEventDrop={rescheduleExistingEvent}
                     //@ts-ignore
-                    onEventResize={manuallyScheduleEvent}
+                    onEventResize={rescheduleExistingEvent}
                     //@ts-ignore
                     onSelectSlot={onSelectSlots}
                     resizable

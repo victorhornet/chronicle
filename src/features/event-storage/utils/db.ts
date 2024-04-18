@@ -4,11 +4,16 @@ import { SchemaEvent, SchemaEventNoId } from '../types/schema';
 /**
  * Inserts a new event to the database.
  */
-export async function create_event(conn: Database, event: SchemaEventNoId) {
-    return await conn.execute(
-        'INSERT INTO events (summary, start, duration) VALUES ($1, $2, $3);',
-        [event.summary, event.start, event.duration]
+export async function create_event(
+    conn: Database,
+    event: SchemaEventNoId
+): Promise<SchemaEvent[]> {
+    const res: SchemaEvent[] = await conn.select(
+        'INSERT INTO events (summary, start, duration, category) VALUES ($1, $2, $3, $4) RETURNING id, summary, start, duration, category;',
+        [event.summary, event.start, event.duration, event.category]
     );
+    console.debug(res[0]);
+    return res;
 }
 
 export async function create_events(conn: Database, events: SchemaEvent[]) {
@@ -33,8 +38,8 @@ export async function read_events_range(
 
 export async function update_event(conn: Database, event: SchemaEvent) {
     return await conn.execute(
-        'UPDATE events SET summary = $1, start = $2, duration = $3 WHERE id = $4;',
-        [event.summary, event.start, event.duration, event.id]
+        'UPDATE events SET summary = $1, start = $2, duration = $3, category = $4 WHERE id = $5;',
+        [event.summary, event.start, event.duration, event.category, event.id]
     );
 }
 

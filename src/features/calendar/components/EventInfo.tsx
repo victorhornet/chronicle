@@ -1,8 +1,9 @@
 import { DEFAULT_CATEGORY, Event, getEnd } from '@/utils';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { CreateEventArgs } from '@/features/calendar';
 import { UseFormReturn } from 'react-hook-form';
 import { formatDuration } from 'date-fns';
+import { CategoryContext } from '@/features/category-list';
 
 type EventInfoProps = {
     event: Event | null;
@@ -46,6 +47,7 @@ function UpdateEventForm({
     updateEvent,
     useFormReturn,
 }: UpdateEventFormProps) {
+    const categories = useContext(CategoryContext);
     const saveFormChanges = useCallback(
         ({ title, category }: UpdateEventFormInputs) => {
             if (event === null) {
@@ -95,9 +97,18 @@ function UpdateEventForm({
                 {event_end.getHours()}:{event_end.getMinutes()}
             </p>
             <p>({formatDuration(event.duration)})</p>
-            <p>
-                Category: <input {...register('category')} />
-            </p>
+            <select id="category" {...register('category')}>
+                {Object.entries(categories).map(([category, color]) => (
+                    <option
+                        key={category}
+                        value={category}
+                        className="font-bold"
+                        style={{ color }}
+                    >
+                        {category}
+                    </option>
+                ))}
+            </select>
             {errors.start && errors.end && <span>This field is required</span>}
             <input hidden type="submit" value="Update" />
         </form>
