@@ -55,6 +55,7 @@ export type CreateEventArgs = {
     start: Date;
     end: Date;
     allDay: boolean;
+    categoryOverride?: string;
 };
 
 export type MyCalendarProps = {
@@ -144,22 +145,13 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
         },
         [conn, setEvents]
     );
+
     const onDelete = useCallback(() => {
         if (selectedEvent !== null) {
             deleteEvent(selectedEvent);
         }
         setSelectedEvent(null);
     }, [selectedEvent, setSelectedEvent, deleteEvent]);
-
-    const handleKeybinds = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            console.log(event.key);
-            if (event.key === 'Backspace') {
-                onDelete();
-            }
-        },
-        [onDelete]
-    );
 
     const rescheduleExistingEvent = useCallback(
         ({ event, start, end, allDay }: RescheduleEventArgs) => {
@@ -185,7 +177,13 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
     );
 
     const createEvent = useCallback(
-        async ({ title, start, end, allDay }: CreateEventArgs) => {
+        async ({
+            title,
+            start,
+            end,
+            allDay,
+            categoryOverride,
+        }: CreateEventArgs) => {
             const duration = intervalToDuration(interval(start, end));
             const result = scheduleFlexibleEvent(
                 {
@@ -194,6 +192,7 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
                     allDay: allDay ?? false,
                     start,
                     duration,
+                    categoryOverride,
                 },
                 events
             );
@@ -207,12 +206,27 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
             console.log(queryResult);
             const newEventId = queryResult.id.toString();
             const newEvent = { ...result.event, id: newEventId };
-            setEvents([...events, newEvent]);
+            setEvents((prev) => [...prev, newEvent]);
             setSelectedEvent(newEvent);
             return true;
         },
         [events, conn, setEvents, setSelectedEvent]
     );
+    const cloneEvent = useCallback(
+        async (event: Event) => {
+            if (conn !== null) {
+                const newEvent = await eventStorage.create_event(conn, event);
+                setEvents((prev) => [...prev, newEvent]);
+                setSelectedEvent(newEvent);
+            }
+        },
+        [conn, setEvents, setSelectedEvent]
+    );
+    const cloneSelectedEvent = useCallback(() => {
+        if (selectedEvent !== null) {
+            cloneEvent(selectedEvent);
+        }
+    }, [selectedEvent, cloneEvent]);
 
     const onSelectSlots = useCallback(
         (ev: CreateEventArgs) => {
@@ -220,6 +234,19 @@ export function Calendar({ events, setEvents }: MyCalendarProps) {
             updateEventForm.setFocus('title');
         },
         [createEvent, updateEventForm]
+    );
+
+    const handleKeybinds = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            console.log(event.key);
+            if (event.key === 'Backspace') {
+                onDelete();
+            }
+            if (event.key.toLowerCase() === 'd') {
+                cloneSelectedEvent();
+            }
+        },
+        [onDelete, cloneSelectedEvent]
     );
 
     return (
