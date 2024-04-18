@@ -1,6 +1,6 @@
 import { useContext } from 'react';
-import { SchemaCategory } from '../types/schema';
 import { CategoryContext } from '@/features/category-list/stores/CategoryContext';
+import { CategoryItem } from './CategoryItem';
 
 export type CategoryListProps = {};
 export function CategoryList({}: CategoryListProps) {
@@ -9,14 +9,13 @@ export function CategoryList({}: CategoryListProps) {
     return (
         <>
             <h1 className="text-xl font-extrabold">Categories</h1>
-            {Object.entries(categories).map(([title, color]) => {
-                return <CategoryItem key={title} category={{ title, color }} />;
-            })}
+            <div className="flex flex-col p-3 text-center">
+                {Object.entries(categories).map(([title, color]) => {
+                    return (
+                        <CategoryItem key={title} category={{ title, color }} />
+                    );
+                })}
+            </div>
         </>
     );
-}
-
-type CategoryItemProps = { category: SchemaCategory };
-function CategoryItem({ category: { title, color } }: CategoryItemProps) {
-    return <p style={{ color }}>{title}</p>;
 }
