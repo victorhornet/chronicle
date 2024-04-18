@@ -4,11 +4,16 @@ import { SchemaEvent, SchemaEventNoId } from '../types/schema';
 /**
  * Inserts a new event to the database.
  */
-export async function create_event(conn: Database, event: SchemaEventNoId) {
-    return await conn.execute(
-        'INSERT INTO events (summary, start, duration) VALUES ($1, $2, $3);',
+export async function create_event(
+    conn: Database,
+    event: SchemaEventNoId
+): Promise<SchemaEvent[]> {
+    const res: SchemaEvent[] = await conn.select(
+        'INSERT INTO events (summary, start, duration) VALUES ($1, $2, $3) RETURNING id, summary, start, duration;',
         [event.summary, event.start, event.duration]
     );
+    console.debug(res[0]);
+    return res;
 }
 
 export async function create_events(conn: Database, events: SchemaEvent[]) {

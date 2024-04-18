@@ -6,7 +6,7 @@ export function event_to_schema(ev: TimeBlockEvent): SchemaEvent {
     return {
         id: ev.id,
         summary: ev.title,
-        start: format(ev.start, 'yyyy-MM-dd'),
+        start: format(ev.start, 'yyyy-MM-dd HH:mm:ss'),
         duration: `${ev.duration.hours ?? '00'}:${ev.duration.minutes ?? '00'}:${ev.duration.seconds ?? '00'}`,
     };
 }

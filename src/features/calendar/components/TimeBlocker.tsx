@@ -17,10 +17,13 @@ export function TimeBlocker() {
     const conn = useContext(DatabaseContext);
     useEffect(() => {
         (async () => {
+            console.log('loading events...');
             if (conn === null) {
                 return;
             }
             const events = await eventStorage.load_events(conn);
+            console.log('loaded: ', events);
+
             setEvents(events);
         })();
     }, [conn]);

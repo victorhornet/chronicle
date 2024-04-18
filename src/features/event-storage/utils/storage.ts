@@ -15,8 +15,12 @@ export async function load_events_range(
         event_from_schema
     );
 }
-export async function create_event(conn: Database, event: TimeBlockEvent) {
-    return await db.create_event(conn, event_to_schema(event));
+export async function create_event(
+    conn: Database,
+    event: TimeBlockEvent
+): Promise<TimeBlockEvent> {
+    const queryResult = await db.create_event(conn, event_to_schema(event));
+    return event_from_schema(queryResult[0]);
 }
 export async function update_event(conn: Database, event: TimeBlockEvent) {
     return await db.update_event(conn, event_to_schema(event));
