@@ -11,7 +11,7 @@
     "app": {
         "windows": [
             {
-                "title": "Chronicle",
+                "title": "Hornet's Chronicle",
                 "width": 1820,
                 "height": 1024,
                 "dragDropEnabled": false
